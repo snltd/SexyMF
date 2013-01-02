@@ -1,0 +1,16 @@
+{
+	"name": "SexyMF",
+	"description": "Web API to SunOS's SMF"
+	"author": {
+		"name": "Robert Fisher",
+		"email": "slackboy@gmail.com"
+	},
+	"version": "0.0.0.1",
+	"private": true,
+	"dependendencies": {
+		"restify": "2.0.1",
+		"cjson": "0.2.1",
+		"underscore": "1.4.2",
+		"validator": "0.4.19"
+	}
+}

@@ -1,0 +1,7 @@
+{
+	"listen_port": 9206,
+		// The port the server listens on
+
+	"loglines": 100
+		// Unless told otherwise, send the last "this many" lines of log file
+}

@@ -1,81 +1,85 @@
 #!/bin/env node
 
-LISTEN_PORT = 9206;
+//============================================================================
+//
+// sexymf.js
+// ---------
+//
+// R Fisher 01/2013
+//
+//============================================================================
 
-var restify = require('restify'),
-	exec = require('child_process').exec,
-    child;
+var os = require('os'),
+	restify = require('restify'),
+	config = require('./lib/config.js'),
+	getMethods = require('./lib/getMethods');
+
+// Start a restify instance
 
 var app = restify.createServer({
 	name: "SexyMF"
 });
 
-process.title = 'sexymf';
+// Tell restify that we want to parse query strings, then apply a little tweak
+// for cURL 
+
+app.use(restify.queryParser());
 app.pre(restify.pre.userAgentConnection());
 
-app.get('/svcs/:mode', function(req, res) {
+//----------------------------------------------------------------------------
+// ROUTING
+//
+// GET calls first. These only GET information about the system. They can't
+// change anything and they require no special privileges to work
 
-	// This will give you services in any state passed as the final portion
-	// of the URI. Pass "list" to get everything.
+app.get('/smf/:zone/svcs', function(req, res, next) {
 
-	var svcs,
-		i,
-		json = [],
-		jsvc;
+	// API calls which mimic the svcs(1) command but do not change system state
 
-	// Get a list of all services
+	validate_zone(req.params.zone);
 
-	child = exec('svcs -a', function(err, stdout, stderr) {
-		svcs = stdout.split('\n');
+	// There are two methods to handle this input
 
-		// first line [0] is the header, so start at [1]
-	
-		for (i = 1; i < svcs.length; i++) {
-			jsvc = smf_to_json(svcs[i]);
-
-			if (jsvc && (req.params.mode === 'list' || req.params.mode ===
-						 jsvc.state)) {
-				json.push(jsvc);
-			}
-
-		}
-
-		// Now nicely stringify and send it
-
-		res.send(json);
-	});
+	if (req.params.svc) {
+		getMethods.svcsSingleService(req, res, next);
+	}
+	else {
+		getMethods.svcsMultiService(req, res, next);
+	}
 
 });
 
-app.get('/svc/:service', function(req, res) {
-	//
-	// Report on a service. Use the query string to get a property
-	//
-		child = exec('svcs -H ' + req.params.service,
-					 function(err, stdout, stderr) {
-			json = JSON.stringify(smf_to_json(stdout), null, ' ');
-			res.setHeader('Content-Type', 'text/plain');
-			res.setHeader('Content-Length', json.length);
-			res.end(json);
-		});
+app.get('/smf/:zone/svcprop', function(req, res, next) {
 
+	// API calls which mimic the svcprop(1) command, but do not change system
+	// state
+
+	validate_zone(req.params.zone);
+	getMethods.svcpropMulti(req, res, next);
 });
 
+app.get('/smf/:zone/log', function(req, res, next) {
 
-function smf_to_json(line) {
-	// Take a row of svcs(1) output and return a JSON object
-	
-	var arr;
+	validate_zone(req.params.zone);
+	getMethods.fetchLog(req, res, next);
+});
 
-	arr = line.trim().split(/\s+/g);
+// Start up the server
 
-	return (arr.length === 3)
-		? { fmri: arr[2], state: arr[0], stime: arr[1] }
-		: false;
+app.listen(config.listen_port);
+
+//----------------------------------------------------------------------------
+// FUNCTIONS
+
+function validate_zone(zone) {
+
+	// At the moment we only run in the current zone. If we get a request for a
+	// zone other than ourselves, send a RestError
+
+	if (zone !== '@' && zone !== os.hostname()) {
+		return next(new restify.InvalidArgumentError('invalid zone. [' + zone +
+					']'));
+	}
+
 }
-
-
-
-app.listen(LISTEN_PORT);
-
 
