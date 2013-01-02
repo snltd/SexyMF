@@ -6,16 +6,17 @@ A web API to SunOS's Service Management Facility, written in Node.js.
 This software will allow you to query and control SMF managed services through
 an HTTP API.
 
-It runs as a Node.js process, listening on port 9206 for requests, which it
-passes on to SMF via calls to the normal userland commands like svcs(1),
+It runs as a Node.js process, listening for HTTP requests, which it
+passes on to SMF via calls to the normal userland commands like `svcs(1)`,
 `svccfg(1M)` and `svcadm(1M)`. Responses are sent as JSON.
 
-Where possible, the URIs used to access the API should mimic the SMF commands
-with which the user is already familiar.
+Where possible, the URIs used to access the API try to mimic the SMF commands
+with which the user should already be familiar.
 
 SexyMF should be compatible with any SunOS system running SMF. This includes Sun
 Solaris 10, Oracle Solaris 11, and Illumos derivatives such as SmartOS and
-OmniOS.
+OmniOS. Some features dealing with non-global zones may be quicker to appear for Illumos OSes, as they have a 
+more complete interface to SMF, making things easier to implement.
 
 If you only want to query service properties, run the program as any non-root
 user. If you wish to be able to stop, start, or modify properties, you will need
@@ -37,14 +38,15 @@ always refer to the zone in which SexyMF is running.
 Querying Service State
 ----------------------
 
-This is usually done through the svcs(1) command. 
+This is usually done through the `svcs(1)` command, so `svcs` is the first part of the API call
+following the zone specification.
 
 To list all installed services.
 
     $ svcs -a 
     GET http://host:9206/smf/@/svcs HTTP/1.1
 
-Use of the 'state' variable allows you to filter on service state. It's like
+Use of the `state` variable allows you to filter on service state. It's like
 running `svcs -a` and passing the output through `grep`. 
 
     $ svcs -a | grep ^online
@@ -66,14 +68,14 @@ To list services in maintenance state
 The final part of the URI is the state that will be returned, so should new
 statuses appear in SMF, they will be automatically handled.
 
-To get the status of a single service
+To get the status of a single service use the `svc` variable.
 
     $ svcs -H system/system-log:default
     GET http://host:9206/smf/@/svcs?svc=system/system-log:default HTTP/1.1
 
 The FMRI service name you pass through the API goes straight to `svcprop(1)`.
-No checking or parsing is done, so it's your responsiblity to use a correct,
-unambiguous FMRI just as if you were using the standard CLI tools.
+Input is sanity checked, but it's your responsiblity to use a correct, unambiguous 
+FMRI just as if you were using the standard CLI tools.
 
 All services queried this way are returned as a JSON object of the following
 form:
