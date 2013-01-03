@@ -10,7 +10,6 @@
 	"dependendencies": {
 		"restify": "2.0.1",
 		"cjson": "0.2.1",
-		"underscore": "1.4.2",
-		"validator": "0.4.19"
+		"underscore": "1.4.2"
 	}
 }

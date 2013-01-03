@@ -1,7 +1,18 @@
 {
+	// External binaries the program needs to be able to call. The preflight
+	// checks look for these. There's no earthly reason to change them.
+
+	"required_bins": [
+		"/bin/zonename",
+		"/bin/svcs",
+		"/bin/svcprop",
+		"/usr/sbin/svcadm"
+		],
+
 	"listen_port": 9206,
 		// The port the server listens on
 
 	"loglines": 100
-		// Unless told otherwise, send the last "this many" lines of log file
+		// Unless told otherwise, send the last "this many" lines of log
+		// file
 }

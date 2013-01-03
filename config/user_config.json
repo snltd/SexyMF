@@ -1,2 +1,7 @@
 // Values in here override those in core_config.json
-{}
+
+{
+	"blacklist": [
+		"svc:/system/system-log:default"
+		]
+}
