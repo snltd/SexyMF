@@ -9,16 +9,23 @@
 //
 //============================================================================
 
+"use strict";
+
 // Modules we need. I always go node core, external dependency, then my
 // modules.
 
 var os = require('os'),
 	fs = require('fs'),
+	exec = require('child_process').exec,
+	child,
 	_ = require('underscore'),
 	restify = require('restify'),
 	config = require('./lib/smfConfig.js'),
 	getMethods = require('./lib/smfGetMethods'),
+	postMethods = require('./lib/smfPostMethods'),
 	v = require('./lib/smfValidate');
+
+var cache = {};
 
 // Pre-flight checks. We only run on SunOS, and we need the support binaries
 // listed in the core config file.
@@ -38,12 +45,14 @@ _.each(config.required_bins, function(bin) {
 });
 
 // So far so good. Time to start a restify instance and tell it that we want
-// to parse query strings, that we'll always want to validate the zone the
-// user supples, then apply a little tweak for cURL 
+// to parse GET query strings and POST bodies, that we'll always want to
+// validate the zone the user supples, then apply a little tweak for cURL 
 
 var app = restify.createServer({ name: "SexyMF" });
 
+app.use(restify.bodyParser());
 app.use(restify.queryParser());
+app.use(my_zonename);
 app.use(v.validate_zone);
 app.pre(restify.pre.userAgentConnection());
 
@@ -85,12 +94,91 @@ app.get('/smf/:zone/log', v.validate_lines, v.validate_svc, function(req,
 	getMethods.fetchLog(req, res, next);
 });
 
+app.post('/smf/:zone/svcadm', function(req, res, next) {
+
+	// API calls to svcadm
+
+	postMethods.svcadmSingle(req, res, next);
+});
+
 // END OF ROUTING
 //----------------------------------------------------------------------------
 
-// Start up the server
+// More preflight checks before we start up the server
 
-app.listen(config.listen_port);
-console.log(app.name + ' receiving requests on port ' + config.listen_port);
+(function main() {
+
+	// This is a startup. Because Node is asynchronous, we have to shove all
+	// kinds of stuff in here. I've chosen to chain the functions rather
+	// than nesting. I don't mind running them in series because they're all
+	// quick, and they only run at startup.
+
+	(function cache_zonename() {
+
+		// Get the current zone's name and cache it.  This is passed to the
+		// validation functions by the my_zonename middleware
+		// 01
+		// calls check_illumos()
+
+		exec('/bin/zonename', function(err, stdout, stderr) {
+			cache.zonename = stdout.trim();
+			return check_illumos();
+		});
+	})();
+
+	function check_illumos() {
+
+		// Does this machine give us the cool Illumos extensions to the SMF
+		// commands?
+		// 02
+		// called by cache_zonename()
+		// calls check_privs()
+
+		exec('/bin/svcs -h', function(err, stdout, stderr) {
+			cache.illumos = (stderr.match(/\-L/)) ? true : false;
+			return check_privs();
+		});
+	}
+
+	function check_privs() {
+
+		// Does the process have the privileges it needs to operate fully?
+		// Say so if not
+		// 03
+		// called by check_illumos()
+		// calls start_server()
+
+		exec('/bin/ppriv ' + process.pid, function(err, stdout, stderr) {
+
+			if (!stdout.match(/E: .*file_dac_search/)) {
+				console.log('WARNING: file_dac_search missing. Will not' +
+					' be able to access local zones from global.');
+			}
+
+			return start_server();
+		});
+	}
+
+	function start_server() {
+		app.listen(config.listen_port);
+		console.log(app.name + ' receiving requests on port ' +
+				config.listen_port);
+	}
+
+})();
+
+//----------------------------------------------------------------------------
+// FUNCTIONS
+
+function my_zonename(req, res, next) {
+
+	// This is a crude piece of middleware which sets the zone name the
+	// process is running in, so it doesn't have to be queried with every
+	// request. It has to go in this file because of variable scope.
+
+	cache.zopts = ' ';
+	req.params.cache = cache;
+	next();
+}
 
 // Done

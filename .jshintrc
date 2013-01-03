@@ -1,0 +1,7 @@
+{
+	// I use the vim-javascript bundle, which indents with tabs and whitespace.
+	"smarttabs":	true,
+	"globalstrict":	true,
+	"node":			true
+}
+

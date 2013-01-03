@@ -3,12 +3,12 @@ SexyMF
 
 A web API to SunOS's Service Management Facility, written in Node.js.
 
-This software will allow you to query and control SMF managed services
-through an HTTP API.
+This software allows you to query and control SMF managed services through
+a RESTful HTTP API.
 
-It runs as a Node.js process, listening for HTTP requests, which it passes
-on to SMF via calls to the normal userland commands like `svcs(1)`,
-`svccfg(1M)` and `svcadm(1M)`. Responses are sent as JSON.
+It runs as a Node.js process, listening on port 9206 for HTTP requests,
+which it passes on to SMF via calls to the normal userland commands like
+`svcs(1)`, `svccfg(1M)` and `svcadm(1M)`. Responses are sent as JSON.
 
 Where possible, the URIs used to access the API try to mimic the SMF
 commands with which the user should already be familiar.
@@ -17,15 +17,25 @@ SexyMF should be compatible with any SunOS system running SMF. This includes
 Sun Solaris 10, Oracle Solaris 11, and Illumos derivatives such as SmartOS
 and OmniOS. Some features dealing with non-global zones may be quicker to
 appear for Illumos OSes, as they have a more complete interface to SMF,
-making things easier to implement.
+making some things easier to implement. Currently, on Solaris 10 or 11, you
+cannot query any zone other than the one you are in, but the final aim is to
+provide the same level of service across all SunOS platforms.
 
-If you only want to query service properties, run the program as any
-non-root user. If you wish to be able to stop, start, or modify properties,
-you will need to use RBAC to grant the agent the necessary privileges.
+If you only want to query service properties in the local zone (i.e. the
+zone SexyMF is running in), run the program as any non-root user. If you
+wish to be able to stop, start, or modify properties, you will need to use
+RBAC to grant the agent the necessary privileges.
 
-If SexyMF is running in a global zone, it will be possible to operate on SMF
-services in non-global zones (NGZs) provided the user has sufficient
-privileges.
+If SexyMF is running in a host's global zone, it is possible to operate on
+SMF services in that host's non-global zones (NGZs) provided the user has
+sufficient privileges. To view services and their properties in an NGZ, a
+user requires the `file_dac_search` privilege. If that is not granted,
+you'll see
+
+```
+svcprop: Could not connect to configuration repository: repository server
+unavailable.
+```
 
 API
 ===
@@ -141,6 +151,8 @@ If a log file cannot be found, a 404 error is returned. The log is returned
 as `text/plain`, to preserve line-breaks.
 
 
+All the above is implemented. Below is work in progress.
+
 Managing Services
 -----------------
 
@@ -150,7 +162,7 @@ elevated privileges. It changes server state, so is accessed through the
 
      POST http://host:9206/smf/@/svcadm/svc=system-log&cmd=restart
 
-You can pass the `-t` and/or `-s` flags with `flags=t`
+You can pass the `-t` and/or `-s` flags with `flags=t`.
 
 
 WHITELISTS AND BLACKLISTS
