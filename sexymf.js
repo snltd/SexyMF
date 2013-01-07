@@ -25,7 +25,8 @@ var os = require('os'),
 	postMethods = require('./lib/smfPostMethods'),
 	v = require('./lib/smfValidate');
 
-var cache = {};
+var cache = {},
+	ssl;
 
 // Pre-flight checks. We only run on SunOS, and we need the support binaries
 // listed in the core config file.
@@ -44,11 +45,27 @@ _.each(config.required_bins, function(bin) {
 
 });
 
+// Are we using SSL?
+
+if (config.useSSL) {
+	ssl = {
+		certificate: fs.readFileSync('./config/ssl/server.crt'),
+		key: fs.readFileSync('./config/ssl/server.key')
+	};
+}
+else {
+	ssl = { certificate: false, key: false };
+}
+
 // So far so good. Time to start a restify instance and tell it that we want
 // to parse GET query strings and POST bodies, that we'll always want to
 // validate the zone the user supples, then apply a little tweak for cURL 
 
-var app = restify.createServer({ name: "SexyMF" });
+var app = restify.createServer({ 
+	name: "SexyMF",
+	certificate: ssl.certificate,
+	key: ssl.key
+});
 
 app.use(restify.bodyParser());
 app.use(restify.queryParser());
@@ -143,26 +160,44 @@ app.post('/smf/:zone/svcadm', function(req, res, next) {
 	function check_privs() {
 
 		// Does the process have the privileges it needs to operate fully?
-		// Say so if not
+		// Say so if not.
 		// 03
 		// called by check_illumos()
 		// calls start_server()
 
-		exec('/bin/ppriv ' + process.pid, function(err, stdout, stderr) {
+		if (cache.illumos) {
+			exec('/bin/ppriv ' + process.pid, function(err, stdout, stderr)
+				 {
 
-			if (!stdout.match(/E: .*file_dac_search/)) {
-				console.log('WARNING: file_dac_search missing. Will not' +
-					' be able to access local zones from global.');
-			}
+				if (!stdout.match(/E: .*file_dac_search/)) {
+					console.log('WARNING: process does not have ' + 
+					'\'file_dac_search\' privilege.\nWill not be able to ' +
+					'access local zones from global.');
+				}
 
+				return start_server();
+			});
+		}
+		else {
+			// Solaris
+			console.log('WARNING: Solaris does not yet support managing ' +
+						'services in non-global zones');
 			return start_server();
-		});
+		}
+
 	}
 
 	function start_server() {
-		app.listen(config.listen_port);
-		console.log(app.name + ' receiving requests on port ' +
-				config.listen_port);
+
+		// Start the server
+		// 04
+		// called by check_privs()
+	
+		app.listen(config.listen_port, function() {
+			console.log(app.name + ' receiving requests on port ' +
+						config.listen_port);
+		});
+
 	}
 
 })();

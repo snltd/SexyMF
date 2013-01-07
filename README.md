@@ -140,7 +140,7 @@ Getting Log Files
 
 You can get the last 'n' lines of a service log file by calling
 
-    GET http://host:9206/smf/@/log?svc=system/system-log:default
+    GET http://host:9206/smf/@/log?svc=system/system-log:default HTTP/1.1
 
 If the log does not exist or cannot be read, an error is returned. By
 default the last 100 lines of the file are returned. This can be changed by
@@ -171,4 +171,4 @@ WHITELISTS AND BLACKLISTS
 You can protect services and zones from being manipulated via the API using
 blacklists and/or whitelists in the `config/user_config.json` file.
 Currently you can only list entire zones, or services in all zones. This
-will most likely become more granular in the future.
+will most !$likely become more granular in the .

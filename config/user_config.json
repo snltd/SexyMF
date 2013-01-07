@@ -1,6 +1,9 @@
 // Values in here override those in core_config.json
 
 {
+	"useSSL": false,
+		// set this to false if you don't want to use SSL
+
 	"blacklist": [
 		"svc:/system/system-log:default"
 		]
