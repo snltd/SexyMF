@@ -1,6 +1,14 @@
 // Values in here override those in core_config.json
 
 {
+	"use_auths": false,
+		// Set this to false to bypass authentication
+
+	"auths": {
+		"username": "myuser",
+		"password": "mypassword"
+		},
+
 	"useSSL": false,
 		// set this to false if you don't want to use SSL
 

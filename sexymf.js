@@ -12,18 +12,20 @@
 "use strict";
 
 // Modules we need. I always go node core, external dependency, then my
-// modules.
+// modules. Kind of in descending order of how much I trust them.
 
 var os = require('os'),
 	fs = require('fs'),
 	exec = require('child_process').exec,
-	child,
 	_ = require('underscore'),
 	restify = require('restify'),
 	config = require('./lib/smfConfig.js'),
 	getMethods = require('./lib/smfGetMethods'),
 	postMethods = require('./lib/smfPostMethods'),
-	v = require('./lib/smfValidate');
+	delMethods = require('./lib/smfDeleteMethods'),
+	auth = require('./lib/smfAuth'),
+	mw = require('./lib/smfMiddleware'),
+	core = require('./lib/smfCore');
 
 var cache = {},
 	ssl;
@@ -32,14 +34,14 @@ var cache = {},
 // listed in the core config file.
 
 if (os.platform() !== 'sunos') {
-	console.error('ERROR: This is not a SunOS platform.');
+	core.log('err', 'This is not a SunOS platform.');
 	process.exit(1);
 }
 
 _.each(config.required_bins, function(bin) {
 
 	if (!fs.existsSync(bin)) {
-		console.error('ERROR: can\'t find ' + bin);
+		core.log('err', 'can\'t find ' + bin);
 		process.exit(1);
 	}
 
@@ -69,54 +71,37 @@ var app = restify.createServer({
 
 app.use(restify.bodyParser());
 app.use(restify.queryParser());
-app.use(my_zonename);
-app.use(v.validate_zone);
+app.use(restify.authorizationParser());
+app.use(mw_zonename);
+app.use(mw.mkParams);
+app.use(mw.chkZone);
+app.use(auth.authenticate_user);
 app.pre(restify.pre.userAgentConnection());
 
 //----------------------------------------------------------------------------
 // ROUTING
 //
 // GET calls first. These only GET information about the system. They can't
-// change anything and they require no special privileges to work
+// change anything and they require no special OS privileges to work
 
-app.get('/smf/:zone/svcs', v.validate_svc, v.validate_state, function(req,
-			res, next) {
+app.get('/smf/:zone/svcs', mw.chkSvc, mw.chkState, getMethods.svcsCmd);
 
-	// API calls which mimic the svcs(1) command but do not change system
-	// state.  There are two methods to handle this input
+app.get('/smf/:zone/svcprop', mw.chkSvc, mw.chkProp, getMethods.svcpropCmd);
 
-	if (req.params.svc) {
-		getMethods.svcsSingleService(req, res, next);
-	}
-	else {
-		getMethods.svcsMultiService(req, res, next);
-	}
+app.get('/smf/:zone/log', mw.chkSvc, mw.chkLines, getMethods.fetchLog);
 
-});
+// Okay. POST routes now
 
-app.get('/smf/:zone/svcprop', v.validate_svc, v.validate_props,
-		function(req, res, next) {
+app.post('/smf/:zone/svcadm', mw.chkSvc, mw.chkCmd, mw.chkFlag,
+		postMethods.svcadmCmd);
 
-	// API calls which mimic the svcprop(1) command, but do not change
-	// system state
+app.post('/smf/:zone/svccfg', mw.chkSvc, mw.chkCmd, mw.chkProp,
+		postMethods.svccfgCmd);
 
-	getMethods.svcpropMulti(req, res, next);
-});
+// DELETE routes
 
-app.get('/smf/:zone/log', v.validate_lines, v.validate_svc, function(req,
-			res, next) {
-
-	// API calls to tail service log files
-
-	getMethods.fetchLog(req, res, next);
-});
-
-app.post('/smf/:zone/svcadm', function(req, res, next) {
-
-	// API calls to svcadm
-
-	postMethods.svcadmSingle(req, res, next);
-});
+//app.del('/smf/:zone/sccfg', mw.chkSvc, mw.chkCm//d
+		//v.validate_prop, delMethods.svccfgSingle);
 
 // END OF ROUTING
 //----------------------------------------------------------------------------
@@ -170,7 +155,7 @@ app.post('/smf/:zone/svcadm', function(req, res, next) {
 				 {
 
 				if (!stdout.match(/E: .*file_dac_search/)) {
-					console.log('WARNING: process does not have ' + 
+					core.log('warn', 'process does not have ' + 
 					'\'file_dac_search\' privilege.\nWill not be able to ' +
 					'access local zones from global.');
 				}
@@ -180,7 +165,7 @@ app.post('/smf/:zone/svcadm', function(req, res, next) {
 		}
 		else {
 			// Solaris
-			console.log('WARNING: Solaris does not yet support managing ' +
+			core.log('warn', 'Solaris does not yet support managing ' +
 						'services in non-global zones');
 			return start_server();
 		}
@@ -194,8 +179,15 @@ app.post('/smf/:zone/svcadm', function(req, res, next) {
 		// called by check_privs()
 	
 		app.listen(config.listen_port, function() {
-			console.log(app.name + ' receiving requests on port ' +
-						config.listen_port);
+
+			var str = app.name + ' receiving ';
+
+			if (ssl.certificate) {
+				str += 'SSL ';
+			}
+
+			core.log('notice', str + 'requests on port ' +
+				config.listen_port);
 		});
 
 	}
@@ -205,7 +197,7 @@ app.post('/smf/:zone/svcadm', function(req, res, next) {
 //----------------------------------------------------------------------------
 // FUNCTIONS
 
-function my_zonename(req, res, next) {
+function mw_zonename(req, res, next) {
 
 	// This is a crude piece of middleware which sets the zone name the
 	// process is running in, so it doesn't have to be queried with every
@@ -213,7 +205,5 @@ function my_zonename(req, res, next) {
 
 	cache.zopts = ' ';
 	req.params.cache = cache;
-	next();
+	return next();
 }
-
-// Done

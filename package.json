@@ -5,11 +5,12 @@
 		"name": "Robert Fisher",
 		"email": "slackboy@gmail.com"
 	},
-	"version": "0.0.0.1",
+	"version": "0.1",
 	"private": true,
 	"dependendencies": {
-		"restify": "2.0.1",
+		"restify": "2.0.4",
 		"cjson": "0.2.1",
-		"underscore": "1.4.2"
+		"underscore": "1.4.2",
+		"moment": "1.7.2"
 	}
 }
