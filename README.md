@@ -280,7 +280,7 @@ that way.
 
 Importing manifests is not currently supported.
 
-# Configuration nad Security
+# Configuration and Security
 
 ## Operating System Configuration
 
