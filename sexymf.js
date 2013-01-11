@@ -22,7 +22,6 @@ var os = require('os'),
 	config = require('./lib/smfConfig.js'),
 	getMethods = require('./lib/smfGetMethods'),
 	postMethods = require('./lib/smfPostMethods'),
-	delMethods = require('./lib/smfDeleteMethods'),
 	auth = require('./lib/smfAuth'),
 	mw = require('./lib/smfMiddleware'),
 	core = require('./lib/smfCore');
@@ -73,7 +72,6 @@ app.use(restify.bodyParser());
 app.use(restify.queryParser());
 app.use(restify.authorizationParser());
 app.use(mw_zonename);
-app.use(mw.mkParams);
 app.use(mw.chkZone);
 app.use(auth.authenticate_user);
 app.pre(restify.pre.userAgentConnection());
@@ -90,18 +88,15 @@ app.get('/smf/:zone/svcprop', mw.chkSvc, mw.chkProp, getMethods.svcpropCmd);
 
 app.get('/smf/:zone/log', mw.chkSvc, mw.chkLines, getMethods.fetchLog);
 
-// Okay. POST routes now
+app.get('/smf/:zone/svccfg/:cmd', mw.chkSvc, getMethods.svccfgCmd);
 
-app.post('/smf/:zone/svcadm', mw.chkSvc, mw.chkCmd, mw.chkFlag,
+// POST routes now
+
+app.post('/smf/:zone/svcadm/:cmd', mw.chkSvc, mw.chkCmd, mw.chkFlag,
 		postMethods.svcadmCmd);
 
-app.post('/smf/:zone/svccfg', mw.chkSvc, mw.chkCmd, mw.chkProp,
+app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 		postMethods.svccfgCmd);
-
-// DELETE routes
-
-//app.del('/smf/:zone/sccfg', mw.chkSvc, mw.chkCm//d
-		//v.validate_prop, delMethods.svccfgSingle);
 
 // END OF ROUTING
 //----------------------------------------------------------------------------
