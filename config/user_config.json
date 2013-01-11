@@ -1,16 +1,31 @@
 // Values in here override those in core_config.json
 
 {
-	"use_auths": false,
-		// Set this to false to bypass authentication
+	// Only clients from these IP addresses can connect
 
-	"auths": {
-		"username": "myuser",
-		"password": "mypassword"
+	"allowed_addr": [ "127.0.0.1" ],
+
+	// Set 'use_auths' to false to bypass user authentication
+
+	"use_auths": true,
+
+	// Users.
+
+	"users": {
+		"myuser": {
+			"password":
+				"sha1$498e6519$1$9ec4ded71edb6d1b8c2b634df1901d1b18b2b979",
+			"auths": [ "view", "setprop", "manage" ]
+		},
+		"rob": {
+			"password": "plainpass",
+			"auths": [ "view" ]
+		}
 		},
 
-	"useSSL": false,
-		// set this to false if you don't want to use SSL
+	// Set 'useSSL' to false if you don't want to use SSL
+
+	"useSSL": true,
 
 	"blacklist": [
 		"svc:/system/system-log:default"

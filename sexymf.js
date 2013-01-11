@@ -76,6 +76,14 @@ app.use(mw.chkZone);
 app.use(auth.authenticate_user);
 app.pre(restify.pre.userAgentConnection());
 
+// Only use the source IP checking middleware if there's some point in doing
+// so
+
+if (config.allowed_addr) {
+	app.use(mw.allowedAddr);
+}
+
+
 //----------------------------------------------------------------------------
 // ROUTING
 //
