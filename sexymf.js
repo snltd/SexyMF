@@ -29,8 +29,8 @@ var os = require('os'),
 var cache = {},
 	ssl;
 
-// Pre-flight checks. We only run on SunOS, and we need the support binaries
-// listed in the core config file.
+// Very early, and hopefully unnecessary, pre-flight checks. We only run on
+// SunOS, and we need the support binaries listed in the core config file.
 
 if (os.platform() !== 'sunos') {
 	core.log('err', 'This is not a SunOS platform.');
@@ -59,8 +59,9 @@ else {
 }
 
 // So far so good. Time to start a restify instance and tell it that we want
-// to parse GET query strings and POST bodies, that we'll always want to
-// validate the zone the user supples, then apply a little tweak for cURL 
+// to parse GET query strings, POST bodies and auth headers; that we'll
+// always want to cache and validate the zone the user supplies, then
+// finally apply a little tweak to help cURL users
 
 var app = restify.createServer({ 
 	name: "SexyMF",
@@ -82,7 +83,6 @@ app.pre(restify.pre.userAgentConnection());
 if (config.allowed_addr) {
 	app.use(mw.allowedAddr);
 }
-
 
 //----------------------------------------------------------------------------
 // ROUTING
@@ -127,8 +127,10 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 
 		exec('/bin/zonename', function(err, stdout, stderr) {
 			cache.zonename = stdout.trim();
+			core.log('notice', 'running in zone \'' + cache.zonename + '\'');
 			return check_illumos();
 		});
+
 	})();
 
 	function check_illumos() {
@@ -141,16 +143,36 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 
 		exec('/bin/svcs -h', function(err, stdout, stderr) {
 			cache.illumos = (stderr.match(/\-L/)) ? true : false;
-			return check_privs();
+			core.log('notice', 'detected Illumos SMF extensions');
+			return check_root();
 		});
 	}
+
+	function check_root() {
+	
+		// Issue a warning if running as root
+
+		// 03
+		// called by check_illumos()
+		// calls check_privs()
+		
+		if (process.getuid() === 0) {
+			core.log('warn', 'running as root user!');
+		}
+		else {
+			core.log('notice', 'running with UID ' + process.getuid());
+		}
+
+		return check_privs();
+	}
+
 
 	function check_privs() {
 
 		// Does the process have the privileges it needs to operate fully?
 		// Say so if not.
-		// 03
-		// called by check_illumos()
+		// 04
+		// called by check_root()
 		// calls start_server()
 
 		if (cache.illumos) {
@@ -181,6 +203,8 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 		// 04
 		// called by check_privs()
 	
+		core.log('notice', 'PID is ' + process.pid);
+
 		app.listen(config.listen_port, function() {
 
 			var str = app.name + ' receiving ';
@@ -191,6 +215,7 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 
 			core.log('notice', str + 'requests on port ' +
 				config.listen_port);
+
 		});
 
 	}
@@ -206,7 +231,6 @@ function mw_zonename(req, res, next) {
 	// process is running in, so it doesn't have to be queried with every
 	// request. It has to go in this file because of variable scope.
 
-	cache.zopts = ' ';
 	req.params.cache = cache;
 	return next();
 }

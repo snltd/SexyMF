@@ -9,7 +9,8 @@
 		"/bin/zonename",
 		"/bin/svcs",
 		"/bin/svcprop",
-		"/usr/sbin/svcadm"
+		"/usr/sbin/svcadm",
+		"/usr/sbin/svccfg"
 		],
 
 	"listen_port": 9206,
