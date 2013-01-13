@@ -471,4 +471,4 @@ documentation](http://mcavage.github.com/node-restify/#DTrace).
 
 # License
 
-SexyMF is issued under an MIT license.
+SexyMF is issued under a BSD license.
