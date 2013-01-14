@@ -16,39 +16,47 @@
 
 var os = require('os'),
 	fs = require('fs'),
+	path = require('path'),
 	exec = require('child_process').exec,
 	_ = require('underscore'),
-	restify = require('restify'),
-	config = require('./lib/smfConfig.js'),
-	getMethods = require('./lib/smfGetMethods'),
-	postMethods = require('./lib/smfPostMethods'),
-	auth = require('./lib/smfAuth'),
-	mw = require('./lib/smfMiddleware'),
-	core = require('./lib/smfCore');
+	optparse = require('optparse'),
+	smfConfig = require('./lib/smfConfig.js'),
+	smfCore = require('./lib/smfCore');
 
 var cache = {},
 	ssl;
 
-// Very early, and hopefully unnecessary, pre-flight checks. We only run on
-// SunOS, and we need the support binaries listed in the core config file.
+// Option parsing
 
-if (os.platform() !== 'sunos') {
-	core.log('err', 'This is not a SunOS platform.');
-	process.exit(1);
-}
+var SWITCHES = [
+		[ '-p', '--port NUMBER', 'listen on thist port' ],
+		[ '-V', '--version', 'print version and exit' ],
+		[ '-h', '--help', 'print this and exit' ]
+	],
+	parser = new optparse.OptionParser(SWITCHES),
+	options = { port: smfConfig.listen_port };
 
-_.each(config.required_bins, function(bin) {
+parser.banner = 'Usage: ' + path.basename(__filename) + ' [options]';
 
-	if (!fs.existsSync(bin)) {
-		core.log('err', 'can\'t find ' + bin);
-		process.exit(1);
-	}
-
+parser.on('port', function(value) {
+	options.port = value;
 });
+
+parser.on('version', function() {
+	console.log(require(path.join(__dirname, 'package.json')).version);
+	process.exit(0);
+});
+
+parser.on('help', function() {
+	console.log(parser.toString());
+	process.exit(0);
+});
+
+parser.parse(process.argv);
 
 // Are we using SSL?
 
-if (config.useSSL) {
+if (smfConfig.useSSL) {
 	ssl = {
 		certificate: fs.readFileSync('./config/ssl/server.crt'),
 		key: fs.readFileSync('./config/ssl/server.key')
@@ -58,53 +66,26 @@ else {
 	ssl = { certificate: false, key: false };
 }
 
-// So far so good. Time to start a restify instance and tell it that we want
-// to parse GET query strings, POST bodies and auth headers; that we'll
-// always want to cache and validate the zone the user supplies, then
-// finally apply a little tweak to help cURL users
+// Call the app module, which sets up Restify and all the routing.
 
-var app = restify.createServer({ 
+var smfApp = require('./lib/smfApp');
+
+smfApp.setupApp( {
 	name: "SexyMF",
 	certificate: ssl.certificate,
 	key: ssl.key
+	}
+);
+
+smfApp.add(function mw_zonename(req, res, next) {
+
+	// This is a crude piece of middleware which sets the zone name the
+	// process is running in, so it doesn't have to be queried with every
+	// request. It has to go in this file because of variable scope.
+
+	req.params.cache = cache;
+	return next();
 });
-
-app.use(restify.bodyParser());
-app.use(restify.queryParser());
-app.use(restify.authorizationParser());
-app.use(mw_zonename);
-app.use(mw.chkZone);
-app.use(auth.authenticate_user);
-app.pre(restify.pre.userAgentConnection());
-
-// Only use the source IP checking middleware if there's some point in doing
-// so
-
-if (config.allowed_addr) {
-	app.use(mw.allowedAddr);
-}
-
-//----------------------------------------------------------------------------
-// ROUTING
-//
-// GET calls first. These only GET information about the system. They can't
-// change anything and they require no special OS privileges to work
-
-app.get('/smf/:zone/svcs', mw.chkSvc, mw.chkState, getMethods.svcsCmd);
-
-app.get('/smf/:zone/svcprop', mw.chkSvc, mw.chkProp, getMethods.svcpropCmd);
-
-app.get('/smf/:zone/log', mw.chkSvc, mw.chkLines, getMethods.fetchLog);
-
-app.get('/smf/:zone/svccfg/:cmd', mw.chkSvc, getMethods.svccfgCmd);
-
-// POST routes now
-
-app.post('/smf/:zone/svcadm/:cmd', mw.chkSvc, mw.chkCmd, mw.chkFlag,
-		postMethods.svcadmCmd);
-
-app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
-		postMethods.svccfgCmd);
 
 // END OF ROUTING
 //----------------------------------------------------------------------------
@@ -127,7 +108,7 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 
 		exec('/bin/zonename', function(err, stdout, stderr) {
 			cache.zonename = stdout.trim();
-			core.log('notice', 'running in zone \'' + cache.zonename + '\'');
+			smfCore.log('notice', 'running in zone \'' + cache.zonename + '\'');
 			return check_illumos();
 		});
 
@@ -143,7 +124,7 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 
 		exec('/bin/svcs -h', function(err, stdout, stderr) {
 			cache.illumos = (stderr.match(/\-L/)) ? true : false;
-			core.log('notice', 'detected Illumos SMF extensions');
+			smfCore.log('notice', 'detected Illumos SMF extensions');
 			return check_root();
 		});
 	}
@@ -157,10 +138,10 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 		// calls check_privs()
 		
 		if (process.getuid() === 0) {
-			core.log('warn', 'running as root user!');
+			smfCore.log('warn', 'running as root user!');
 		}
 		else {
-			core.log('notice', 'running with UID ' + process.getuid());
+			smfCore.log('notice', 'running with UID ' + process.getuid());
 		}
 
 		return check_privs();
@@ -180,7 +161,7 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 				 {
 
 				if (!stdout.match(/E: .*file_dac_search/)) {
-					core.log('warn', 'process does not have ' + 
+					smfCore.log('warn', 'process does not have ' + 
 					'\'file_dac_search\' privilege.\nWill not be able to ' +
 					'access local zones from global.');
 				}
@@ -190,7 +171,7 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 		}
 		else {
 			// Solaris
-			core.log('warn', 'Solaris does not yet support managing ' +
+			smfCore.log('warn', 'Solaris does not yet support managing ' +
 						'services in non-global zones');
 			return start_server();
 		}
@@ -198,39 +179,7 @@ app.post('/smf/:zone/svccfg/:cmd', mw.chkSvc, mw.chkCmd, mw.chkProp,
 	}
 
 	function start_server() {
-
-		// Start the server
-		// 04
-		// called by check_privs()
-	
-		core.log('notice', 'PID is ' + process.pid);
-
-		app.listen(config.listen_port, function() {
-
-			var str = app.name + ' receiving ';
-
-			if (ssl.certificate) {
-				str += 'SSL ';
-			}
-
-			core.log('notice', str + 'requests on port ' +
-				config.listen_port);
-
-		});
-
+		smfApp.startApp(options.port);
 	}
 
 })();
-
-//----------------------------------------------------------------------------
-// FUNCTIONS
-
-function mw_zonename(req, res, next) {
-
-	// This is a crude piece of middleware which sets the zone name the
-	// process is running in, so it doesn't have to be queried with every
-	// request. It has to go in this file because of variable scope.
-
-	req.params.cache = cache;
-	return next();
-}
