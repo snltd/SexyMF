@@ -77,21 +77,18 @@ smfApp.setupApp( {
 	}
 );
 
-smfApp.add(function mw_zonename(req, res, next) {
+// Start the server listening
 
-	// This is a crude piece of middleware which sets the zone name the
-	// process is running in, so it doesn't have to be queried with every
-	// request. It has to go in this file because of variable scope.
-
-	req.params.cache = cache;
-	return next();
+exec('/bin/zonename', function(err, stdout, stderr) {
+	var zonename = stdout.trim();
+	smfApp.startApp(zonename, options.port);
 });
 
-// END OF ROUTING
-//----------------------------------------------------------------------------
+
+/*
+
 
 // More preflight checks before we start up the server
-
 (function main() {
 
 	// This is a startup. Because Node is asynchronous, we have to shove all
@@ -106,11 +103,6 @@ smfApp.add(function mw_zonename(req, res, next) {
 		// 01
 		// calls check_illumos()
 
-		exec('/bin/zonename', function(err, stdout, stderr) {
-			cache.zonename = stdout.trim();
-			smfCore.log('notice', 'running in zone \'' + cache.zonename + '\'');
-			return check_illumos();
-		});
 
 	})();
 
@@ -178,8 +170,6 @@ smfApp.add(function mw_zonename(req, res, next) {
 
 	}
 
-	function start_server() {
-		smfApp.startApp(options.port);
-	}
 
 })();
+*/
