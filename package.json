@@ -1,6 +1,6 @@
 {
 	"name": "SexyMF",
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"description": "Web API to SunOS's SMF",
 	"author": {
 		"name": "Robert Fisher",

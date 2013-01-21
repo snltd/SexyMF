@@ -5,6 +5,9 @@
 // sexymf.js
 // ---------
 //
+// The main program that launches SexyMF. All the real work is done by the
+// modules in lib/.
+//
 // R Fisher 01/2013
 //
 //============================================================================
@@ -14,22 +17,24 @@
 // Modules we need. I always go node core, external dependency, then my
 // modules. Kind of in descending order of how much I trust them.
 
-var os = require('os'),
-	fs = require('fs'),
-	path = require('path'),
-	exec = require('child_process').exec,
-	_ = require('underscore'),
+var path = require('path'),
 	optparse = require('optparse'),
 	smfConfig = require('./lib/smfConfig.js'),
-	smfCore = require('./lib/smfCore');
+	smfPreflight = require('./lib/smfPreflight'),
+	smfApp = require('./lib/smfApp');
 
-var cache = {},
-	ssl;
+// chdir to the directory this file is in, so the config paths work
+
+process.chdir(__dirname);
+
+// Preflight checks #1
+
+smfPreflight.runChecks();
 
 // Option parsing with optparse
 
 var SWITCHES = [
-		[ '-p', '--port NUMBER', 'listen on thist port' ],
+		[ '-p', '--port NUMBER', 'listen on this port' ],
 		[ '-V', '--version', 'print version and exit' ],
 		[ '-h', '--help', 'print this and exit' ]
 	],
@@ -54,33 +59,15 @@ parser.on('help', function() {
 
 parser.parse(process.argv);
 
-// Are we using SSL?
-
-if (smfConfig.useSSL) {
-	ssl = {
-		certificate: fs.readFileSync('./config/ssl/server.crt'),
-		key: fs.readFileSync('./config/ssl/server.key')
-	};
-}
-else {
-	ssl = { certificate: false, key: false };
-}
+smfPreflight.userCheck();
 
 // Call the app module, which sets up Restify and all the routing.
 
-var smfApp = require('./lib/smfApp');
+smfApp.setupApp({name: "SexyMF"});
 
-smfApp.setupApp( {
-	name: "SexyMF",
-	certificate: ssl.certificate,
-	key: ssl.key
-	}
-);
+// Cache a bit of info, and start the server listening
 
-// Get the zone name, and start the server listening
-
-exec('/bin/zonename', function(err, stdout, stderr) {
-	var zonename = stdout.trim();
-	smfApp.startApp(zonename, options.port);
+smfApp.populateCache(function() {
+	smfApp.startApp(options.port);
 });
 

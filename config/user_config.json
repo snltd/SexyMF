@@ -21,11 +21,27 @@
 			"password": "plainpass",
 			"auths": [ "view" ]
 		}
-		},
+	},
 
-	// Set 'useSSL' to false if you don't want to use SSL
+	// SSL 
 
-	"useSSL": true,
+	"ssl": {
+		"enabled": true,
+		"certificate": "config/ssl/server.crt",
+		"key": "config/ssl/server.key"
+	},
+
+	// The port the server listens on -- override with -p
+
+	"listen_port": 9206,
+	
+	// Be verbose -- force to true with -v
+
+	"verbose" : true,
+
+	// Unless told otherwise, send the last "this many" lines of log file
+
+	"loglines": 100,
 
 	"blacklist": [
 		"svc:/system/system-log:default"
