@@ -17,9 +17,13 @@
 				"sha1$498e6519$1$9ec4ded71edb6d1b8c2b634df1901d1b18b2b979",
 			"auths": [ "view", "setprop", "manage" ]
 		},
-		"rob": {
+		"viewer": {
 			"password": "plainpass",
 			"auths": [ "view" ]
+		},
+		"logviewer": {
+			"password": "plainpass",
+			"auths": [ "view", "log"]
 		}
 	},
 
@@ -43,7 +47,5 @@
 
 	"loglines": 100,
 
-	"blacklist": [
-		"svc:/system/system-log:default"
-		]
+	"blacklist": []
 }

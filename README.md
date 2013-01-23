@@ -183,7 +183,9 @@ client application to parse the properties.
       }
     }
 
-If the service does not exist, a 404 error is sent.
+If the service does not exist, a 404 error is sent. If you request a service
+with multiple instances, but do not specify the instance, an "ambiguous
+service" error is returned.
 
 To get a single service property
 
@@ -210,9 +212,14 @@ default the last 100 lines of the file are sent to the client. This can be
 changed by setting `loglines` in the configuration files, or by adding
 `lines=n` to the URI. 
 
-If a log file cannot be found, a 404 error is sent. The log is passed to the
-client as a JSON object, in which the key is the path to the log file, and
-the value is the log itself.
+If a log file cannot be found, a 500 error is sent, as the code assumes
+either it or Solaris has incorrectly supposed where the log file should be.
+The supposed location of the file is sent to the user.
+
+Logs are passed to the client as plain text.
+
+To view logs, a user must have the `logview` authorization. If this is not
+the case, requests will be refused with a 403 error.
 
 
 ### Managing Services
