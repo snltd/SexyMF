@@ -9,3 +9,4 @@ HEADER=200
 L_COUNT=8
 MATCH=":kill"
 
+MIMETYPE="application/json"

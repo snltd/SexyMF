@@ -9,3 +9,4 @@ A_USER="viewer:plainpass"
 HEADER=200
 MATCH="\{\}"
 
+MIMETYPE="application/json"

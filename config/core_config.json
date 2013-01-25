@@ -1,16 +1,27 @@
 {
-	// External binaries the program needs to be able to call. The preflight
-	// checks look for these. There's no earthly reason to change them. If
-	// you absolutely positively don't want any of these executed, don't use
-	// this software. Prior to execution smfCommand module looks at this
-	// list to make sure it's allowed to run a command.
+	// external_bins list a list of external commands you want SexyMF to be
+	// able to exectute. So, if you don't want anyone to be able to call
+	// svccfg through the API, take it out of here. Some objects contain an
+	// array of flags. Only those flags can be used. Some commands have
+	// subcommands, which are another command-like object nested inside the
+	// higher-level one.
 
-	"external_bins": [
-		"/bin/ppriv",
-		"/bin/zonename",
-		"/bin/svcs",
-		"/bin/svcprop",
-		"/usr/sbin/svcadm",
-		"/usr/sbin/svccfg"
-		]
+	"external_bins": {
+		"/bin/ppriv": {},
+		"/bin/zonename": {},
+		"/bin/svcs": {},
+		"/bin/svcprop": {},
+		"/usr/sbin/svcadm": {
+			"restart": {},
+			"refresh": {},
+			"enable": {
+				"flags": [ "-t" ]
+			},
+			"disable": {
+				"flags": [ "-t" ]
+			},
+			"clear" : {}
+		},
+		"/usr/sbin/svccfg": {}
+		}
 }

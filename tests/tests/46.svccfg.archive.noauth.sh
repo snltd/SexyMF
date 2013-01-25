@@ -1,6 +1,6 @@
-# Try to get a log file as a user without the 'logview' authorization
+# Run svccfg archive as a user without sufficient authorizations
 
-URI="/smf/@/log?svc=ssh"
+URI="/smf/@/svccfg/archive"
 A_USER="viewer:plainpass"
 HEADER=403
 MATCH="insufficient authorization"

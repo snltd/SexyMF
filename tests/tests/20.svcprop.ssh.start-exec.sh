@@ -9,3 +9,4 @@ HEADER=200
 L_COUNT=5
 MATCH=$(svcprop  -p $_prop $_svc | cut -d\\ -f1)
 
+MIMETYPE="application/json"

@@ -4,3 +4,4 @@ URI="/smf/nosuch/svcs"
 A_USER="viewer:plainpass"
 HEADER=404
 MATCH="Unknown zone: nosuch"
+MIMETYPE="application/json"

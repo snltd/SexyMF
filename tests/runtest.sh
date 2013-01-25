@@ -15,8 +15,13 @@
 #-----------------------------------------------------------------------------
 # VARIABLES
 
+PATH=/usr/bin:/usr/local/node/bin
+	# You might need to change this so it can find the 'json' executable.
+
 BASE="https://0:9206"
 HFILE=$(mktemp)
+TEST_FILE=$(mktemp)
+REF_FILE=$(mktemp)
 
 ABORT_ON_ERROR=1
 	# uncomment this to have the script exit if a test fails
@@ -25,45 +30,26 @@ TESTS_RUN=0
 TESTS_PASSED=0
 TESTS_FAILED=0
 
-typeset -L40 LFIELD
-typeset -R36 RFIELD
+typeset -L60 LFIELD
+typeset -R17 RFIELD
 
 #-----------------------------------------------------------------------------
 # FUNCTIONS
 
 function do_exit
 {
+	# Exit cleanly and clear up temp files
+
 	print "\n$TESTS_RUN tests. $TESTS_PASSED passed, $TESTS_FAILED failed.\n"
+	rm -f $HFILE $TEST_FILE $REF_FILE
 	exit $TESTS_FAILED
-}
-
-function print_test
-{
-	LFIELD=$1
-	print -n "  $LFIELD"
-}
-
-function print_result
-{
-	TESTS_RUN=$(( $TESTS_RUN + 1))
-	RFIELD=$1
-
-	if [[ $1 == "ok" ]]
-	then
-		col=2
-		TESTS_PASSED=$(( $TESTS_PASSED + 1))
-	else
-		col=1
-		TESTS_FAILED=$(( $TESTS_FAILED + 1))
-	fi
-
-	tput setaf $col
-	print "$RFIELD"
-	tput sgr0
 }
 
 function mk_cmd
 {
+	# Build up a curl command which will be run by one of the test_
+	# functions
+	#
 	# $1 is the API path
 	# $2 is any additional flags
 
@@ -72,6 +58,7 @@ function mk_cmd
 	[[ -n $DATA ]] && print -n -- "-d \"$DATA\" "
 	[[ -n $A_USER ]] && print -n -- "-u $A_USER "
 	[[ -n $FLAGS ]] && print -n -- "$FLAGS "
+	[[ -n $2 ]] && print -n -- "$2 "
 
 	print -- "\"${BASE}$1\""
 }
@@ -80,16 +67,21 @@ function handle_result
 {
 	# $1 is the command we just ran
 	# $2 is $? from the test
+	# $3 is an optional "got xx" string
+
+	typeset pr
 
 	if [[ $2 == 0 ]]
 	then
 		print_result ok
 	else
-		print_result FAILED
+		[[ -n $3 ]] && pr="FAILED (got $3)" || pr="FAILED"
+		print_result "$pr"
 		cat <<-EOMSG
 ==============================================================================
 Failed command:
 $1
+$([[ -n $DIFF_CMD ]] && print "\ndiff command:\n$DIFF_CMD")
 ==============================================================================
 		EOMSG
 
@@ -100,7 +92,7 @@ $1
 
 function match_test
 {
-	# Look for a string
+	# Look for a string in output
 
 	# $1 is the command
 	# $2 is the string
@@ -122,33 +114,28 @@ function header_test
 	then
 		code=$(sed -n '1s/^[^ ]* \([0-9]*\) .*$/\1/p' $HFILE)
 
-		if [[ $code == $1 ]]
-		then
-			print_result ok
-		else
-			print_result "FAILED (got $code)"
-		fi
-
+		[[ $code == $1 ]]
+		handle_result "$cmd" $? $code
 	else
 		print "FAILED (no header file)"
 	fi
 
 }
 
-
-function line_test_plain
+function mimetype_test
 {
-	# see if a specified number of lines are output
+	# $1 is the expected mimetype
 
-	# $1 is the command
-	# $2 is the number of lines
+	print_test "mimetype test ($1)"
 
-	print_test "plain text line count ($2)"
-
-	cmd="$(mk_cmd "$1") | wc -l"
-
-	(( $(eval $cmd) == $2 ))
-	handle_result "$cmd" $?
+	if [[ -s $HFILE ]]
+	then
+		mtype=$(sed -n '/^Content-Type/s/^.*: \([a-z\/]*\).*$/\1/p' $HFILE)
+		[[ $mtype == $1 ]]
+		handle_result "$cmd" $? $mtype
+	else
+		print "FAILED (no header file)"
+	fi
 }
 
 function line_test
@@ -166,6 +153,62 @@ function line_test
 	handle_result "$cmd" $?
 }
 
+function line_test_plain
+{
+	# see if a specified number of lines are output
+
+	# $1 is the command
+	# $2 is the number of lines
+
+	print_test "plain text line count ($2)"
+
+	cmd="$(mk_cmd "$1") | wc -l"
+
+	(( $(eval $cmd) == $2 ))
+	handle_result "$cmd" $?
+}
+
+function diff_test
+{
+	# Compare the output of the command you are testing with the output of
+	# another, predicatable, one
+
+	# $1 is the command to run
+	# $2 is the command to compare to
+
+	cmd=$(mk_cmd "$1" "-o $TEST_FILE")
+
+	print_test "diff test"
+
+	eval $cmd
+	$2 >$REF_FILE 2>&1
+
+	cmp -s $TEST_FILE $REF_FILE
+	handle_result "$cmd" $?
+}
+
+function pre_cmd_test
+{
+	# See if a command is successful
+	# $1 is the command
+
+	print_test "pre command test"
+
+	eval $1
+	handle_result "$1" $?
+}
+
+function post_cmd_test
+{
+	# See if a command is successful
+	# $1 is the command
+
+	print_test "post command test"
+
+	eval $1
+	handle_result "$1" $?
+}
+
 function run_test
 {
 	# Run a test
@@ -173,16 +216,53 @@ function run_test
 
 	print "${1##*/}"
 
-	unset L_COUNT MATCH HEADER FLAGS
+	unset POST_CMD PRE_CMD DIFF_CMD L_COUNT L_COUNT_P MATCH HEADER FLAGS \
+		MIMETYPE
 
 	. $1
 
-	[[ -n $L_COUNT ]] && line_test $URI $L_COUNT
-	[[ -n $L_COUNT_P ]] && line_test_plain $URI $L_COUNT_P
-	[[ -n $MATCH ]] && match_test $URI "$MATCH"
-	[[ -n $HEADER ]] && header_test $HEADER
+	[[ -n $PRE_CMD ]] && pre_cmd_test "$PRE_CMD"
+	[[ -n $L_COUNT ]] && line_test "$URI" $L_COUNT
+	[[ -n $L_COUNT_P ]] && line_test_plain "$URI" $L_COUNT_P
+	[[ -n $MATCH ]] && match_test "$URI" "$MATCH"
+	[[ -n $DIFF_CMD ]] && diff_test "$URI" "$DIFF_CMD"
+	[[ -n $POST_CMD ]] && post_cmd_test "$POST_CMD"
 
-	rm $HFILE
+	# Header and mimetype tests have to be last because the other tests dump
+	# a header file which they use
+
+	[[ -n $HEADER ]] && header_test $HEADER
+	[[ -n $MIMETYPE ]] && mimetype_test $MIMETYPE
+}
+
+function print_test
+{
+	# Use typeset to do formatting of notifications. Goes hand-in-hand with
+	# print_result
+
+	LFIELD=$1
+	print -n "  $LFIELD"
+}
+
+function print_result
+{
+	# Print and colour the test result
+
+	TESTS_RUN=$(( $TESTS_RUN + 1))
+	RFIELD=$1
+
+	if [[ $1 == "ok" ]]
+	then
+		col=2
+		TESTS_PASSED=$(( $TESTS_PASSED + 1))
+	else
+		col=1
+		TESTS_FAILED=$(( $TESTS_FAILED + 1))
+	fi
+
+	tput setaf $col
+	print "$RFIELD"
+	tput sgr0
 }
 
 #-----------------------------------------------------------------------------
@@ -204,7 +284,14 @@ fi
 for t in $testlist
 do
 	[[ -f $t ]] || t="${0%/*}/tests/$t"
-	[[ -f $t ]] && run_test $t || print "can't find test: $t"
+
+	if [[ -f $t ]]
+	then
+		run_test $t
+	else
+		print "can't find test: $t"
+	fi
+
 done
 
 

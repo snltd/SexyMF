@@ -2,5 +2,7 @@ URI="/smf/@/"
 A_USER="viewer:plainpass"
 HEADER=
 L_COUNT=
+L_COUNT_P=
 MATCH=
+DIFF_CMD=
 

@@ -6,3 +6,4 @@ URI="/smf/@/svcprop?svc=identity"
 A_USER="viewer:plainpass"
 HEADER=409
 MATCH="Ambiguous service"
+MIMETYPE="application/json"

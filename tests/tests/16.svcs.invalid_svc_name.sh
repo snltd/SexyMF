@@ -4,3 +4,4 @@ URI='/smf/@/svcs?svc=no;\$(such)'
 A_USER="viewer:plainpass"
 HEADER=409
 MATCH="Invalid value for service"
+MIMETYPE="application/json"

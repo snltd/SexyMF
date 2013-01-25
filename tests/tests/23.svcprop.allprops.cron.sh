@@ -8,3 +8,4 @@ A_USER="viewer:plainpass"
 HEADER=200
 L_COUNT="$(print $(svcprop $_svc | cut -f1 -d/ | sort -u | wc -l) \* 2 + \
 	$(svcprop $_svc | wc -l) + 2 | bc)"
+MIMETYPE="application/json"

@@ -53,7 +53,7 @@ There are a couple of caveats: SexyMF is built on
 DTrace, which means compiling the Node DTrace module, which means GCC.
 Sorry. Second, you may find that a build fails with a `make` usage error.
 If that happens, it's using the Sun `make`, and it requires the GNU version,
-so fiddle with your path until that's fixed. 
+so fiddle with your path until that's fixed.
 
 To start the server, run `sexymf.js`.
 
@@ -73,7 +73,7 @@ Service names are always passed as a `svc` variable, and property names as
 A zone's name is what you would get from running `zoneadm(1m)` inside it.
 Thus, a global zone will will be referred to as `global`. In an NGZ the zone
 name will probably be the same as the hostname, but that can't be
-guaranteed. (I've seen it. They know who they are.) 
+guaranteed. (I've seen it. They know who they are.)
 
 You can use an `@` sign as a shorthand to always refer to the zone in which
 SexyMF is running. (Hereafter referred to as "the local zone", even though
@@ -105,11 +105,11 @@ change state on the server, so are accessed through the HTTP `GET` verb.
 
 To list all installed services.
 
-    $ svcs -a 
+    $ svcs -a
     GET http://host:9206/smf/@/svcs HTTP/1.1
 
 Use of the `state` variable allows you to filter on service state. It's like
-running `svcs -a` and passing the output through `grep`. 
+running `svcs -a` and passing the output through `grep`.
 
     $ svcs -a | grep ^online
     GET http://host:9206/smf/@/svcs?state=online HTTP/1.1
@@ -128,7 +128,7 @@ To list services in the maintenance state
     GET http://host:9206/smf/@/svcs?state=maintenance HTTP/1.1
 
 The final part of the URI is the state that will be returned, so should new
-statuses appear in SMF, they will be automatically handled. 
+statuses appear in SMF, they will be automatically handled.
 
 The above should always be valid requests, so any failure results in a 500
 error. If you send a nonsense service state, the request will succeed, but
@@ -142,7 +142,7 @@ specify the service FMRI using the `svc` variable.  For example:
 
 If there are multiple instances of the service (for instance `console-login`
 on systems with the virtual console driver), you will receive an array of
-objects which describe each instance. 
+objects which describe each instance.
 
 Any other variables you may try to pass to the `svcs` command are ignored.
 
@@ -158,6 +158,8 @@ form:
     }
 
 Multiple services are an array of such objects.
+
+You cannot currently pass any flags through to the `svcs` command.
 
 
 ### Querying Service Properties
@@ -195,10 +197,11 @@ To get a single service property
 To get multiple service properties, pass them as a comma-separated list:
 
     GET http://host:9206/smf/@/svcprop?svc=system/system-log:default&prop=start/exec,stop/exec HTTP/1.1
- 
+
 Asking for a non-existent property will result in an empty object. Querying
 a non-existent service is considered user error, so the API returns a 404.
-Variables other than `svc` and `prop` are ignored.
+Variables other than `svc` and `prop` are ignored, and you cannot pass any
+flags through to the command.
 
 
 ### Getting Log Files
@@ -210,16 +213,47 @@ You can get the last 'n' lines of a service's log file by calling
 If the log does not exist or cannot be read, an error is returned. By
 default the last 100 lines of the file are sent to the client. This can be
 changed by setting `loglines` in the configuration files, or by adding
-`lines=n` to the URI. 
+`lines=n` to the URI.
 
 If a log file cannot be found, a 500 error is sent, as the code assumes
 either it or Solaris has incorrectly supposed where the log file should be.
 The supposed location of the file is sent to the user.
 
-Logs are passed to the client as plain text.
+Logs are passed to the client as plain text. (`text/plain` mimetype.)
 
 To view logs, a user must have the `logview` authorization. If this is not
 the case, requests will be refused with a 403 error.
+
+
+### Exporting a Service Manifest, Profile, or Archive
+
+This is another `svccfg(1m)` job. It requires no elevated OS privileges, and
+the `view` authorization.
+
+    $ svccfg export network/ssh
+    GET http://host:9206/smf/@/svccfg/export?svc=network/ssh HTTP/1.1
+
+Specifying a non-existent service triggers a 404 error.
+
+You can also extract the running SMF profile.
+
+    $ svccfg extract
+    GET http://host:9206/smf/@/svccfg/export?svc=network/ssh HTTP/1.1
+
+On systems which support the `archive` command, you can use it to take an
+XML archive of the running repository. This may be useful for backups.  It
+requires the `archive` authorization.
+
+	$ svccfg archive
+    GET http://host:9206/smf/@/svccfg/archive HTTP/1.1
+
+The information is sent to the client as a chunked stream of XML, encoding
+type `application/xml`. Although all other SexyMF output is JSON, manifests,
+profiles and archives are in XML, so it seems sensible to transfer them
+that way.
+
+Importing manifests is not currently supported, but is planned for a future
+release. You cannot pass additional flags to `svccfg`.
 
 
 ### Managing Services
@@ -234,11 +268,17 @@ passwd in with the `svc` variable.
      POST svc=system-log http://host:9206/smf/@/svcadm/restart HTTP/1.1
 
 You can pass flags such as `-t` and `-s` by setting `flags=` to a list of
-the flags you require. SexyMF does not check that the flags mean anything to
-`svcadm(1m)`: it is the user's responsibility to send the right ones.
-Sending invalid flags, an invalid service name, or an invalid command will
-result in a 409 error and a JSON object which attempts to identify the bad
-data. A missing command is a 404.
+the flags you require. SexyMF has a look-up list of allowable flags for
+each `svcadm` sub-command in the config file, and if a user tries to set a
+flag which is not in the appropriate list, he wil receive an error.
+
+Sending an invalid service name or an invalid command will result in a 409
+error and a JSON object which attempts to identify the bad data. A missing
+command is a 404.
+
+If the SexyMF user doesn't have sufficient OS authorizations to run the
+command, the user will get back a 500 error, with the standard error from
+`svcadm` in the body.
 
 
 ### Adding, Changing, or Deleting Service Properties
@@ -271,34 +311,6 @@ command to put the new value in the service's environment.
 A missing or unsupported command results in a 404 error.
 
 
-### Exporting a Service Manifest, Profile, or Archive
-
-This is another `svccfg(1m)` job. It requires no elevated privileges.
-
-    $ svccfg export network/ssh 
-    GET http://host:9206/smf/@/svccfg/export?svc=network/ssh HTTP/1.1
-
-Specifying a non-existent service triggers a 404 error.  
-
-You can also extract the running SMF profile
-
-    $ svccfg extract
-    GET http://host:9206/smf/@/svccfg/export?svc=network/ssh HTTP/1.1
-
-On systems which support the `archive` command, you can use it to take an
-XML archive of the running repository. This may be useful for backups.
-	
-	$ svccfg archive
-    GET http://host:9206/smf/@/svccfg/archive HTTP/1.1
-
-The information is sent to the client as a chunked stream of XML, encoding
-type `application/xml`. Although all other SexyMF output is JSON, manifests,
-profiles and archives are in XML, so it seems sensible to transfer them
-that way.
-
-Importing manifests is not currently supported, but is planned for a future
-release.
-
 # Configuration and Security
 
 SexyMF has many-layered security. You can have the application accept
@@ -308,6 +320,7 @@ and/or services. This, however, is all sticking plaster to the conscientious
 admin, as the real security work configuring SexyMF is at the operating
 system level. If you only grant it the privileges it needs, it will be
 impossibly to abuse even if the application's security is breached.
+
 
 ## Operating System Configuration
 
@@ -327,7 +340,7 @@ and I wrote it.
 The best way to correctly grant SexyMF the privileges it needs to do the job
 you want it to do is to read and understand the `smf_security(5)` manual
 page, and devlop a set of additional privileges suitable for your site.
-Below are a few guidelines. 
+Below are a few guidelines.
 
 Chances are you will only want to use SexyMF to manage a small number of
 services, and it may well be that you only want to restart or refresh those
@@ -366,7 +379,7 @@ enable, disable , restart and refresh services, and change properties via
 `svccfg`. You can also do this, perhaps more succinctly, with the `Service
 Management` profile:
 
-    # usermod -A 'Service Management' smfuser
+    # usermod -P 'Service Management' smfuser
 
 If you just want to be able to change properties, look at the service's
 `value_authorization` property to find out which authorization to grant. If
@@ -377,6 +390,32 @@ you can add it with a command of the form:
 	'solaris.smf.manage.fmri
 
 where `fmri` is the service FMRI.
+
+## Allowed Commands, Sub-Commands, and Flags
+
+The config file contains a JSON object which describes allowable commands
+sub-commands, and options. For example:
+
+    "external_bins": {
+        "/bin/ppriv": {},
+        "/bin/zonename": {},
+        "/bin/svcs": {},
+        "/usr/sbin/svcadm": {
+            "enable": {
+                "flags": [ "-t" ]
+            },
+            "disable": {
+                "flags": [ "-t", "-s" ]
+            },
+            "clear" : {}
+        },
+	}
+
+This means that SexyMF is free to execute `/bin/zonename`, but not
+`/usr/sbin/svccfg`. A user may run enable a service, but not restart one. He
+may pass the `-t` flag to `svcadm disable`, but not `-s`. This gives you a
+fine-grained control over permitted operations. SexyMF will not attempt to run
+any external program which is not in this list.
 
 
 ### Managing Services in Other Zones
@@ -396,7 +435,7 @@ IP addresses are not difficult to spoof.
 
 SexyMF comes with a dummy self-signed certificate in 'config/ssl' which will
 get you up and running in SSL mode. To make the server use SSL, you need to
-set  `useSSL` to `true` in `config/user_config.json`. 
+set `useSSL` to `true` in `config/user_config.json`.
 
 ## User Authentication
 
@@ -417,13 +456,17 @@ can use clear text passwords instead. Authorizations are set with the
 If you prefer not to use authentication at all, set `use_auths` to `false`
 in the config file, and seek professional help.
 
+The config file is only read at startup, so if you add or change a user, you
+have to restart SexyMF. This may change in the future.
+
 ## User Authorization
 
 Authorizations are:
 
  * view - lets a user run any of the `GET` methods above, except for `svccfg
-   archive`.
- * export - lets a user run `svccfg export`, if the system supports it
+   archive` and log access.
+ * archive - lets a user run `svccfg archive`, if the system supports it
+ * log - lets a user access service log files
  * manage - lets a user run `enable`, `disable`, `refresh` etc. via `svcadm`
  * setprop - required to set or delete service properties
 

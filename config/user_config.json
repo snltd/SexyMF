@@ -24,10 +24,18 @@
 		"logviewer": {
 			"password": "plainpass",
 			"auths": [ "view", "log"]
+		},
+		"archiver": {
+			"password": "plainpass",
+			"auths": [ "view", "log", "archive" ]
+		},
+		"manager": {
+			"password": "plainpass",
+			"auths": [ "view", "manage" ]
 		}
 	},
 
-	// SSL 
+	// SSL
 
 	"ssl": {
 		"enabled": true,
@@ -38,7 +46,7 @@
 	// The port the server listens on -- override with -p
 
 	"listen_port": 9206,
-	
+
 	// Be verbose -- force to true with -v
 
 	"verbose" : true,
