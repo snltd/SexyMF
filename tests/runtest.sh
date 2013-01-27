@@ -217,9 +217,20 @@ function run_test
 	print "${1##*/}"
 
 	unset POST_CMD PRE_CMD DIFF_CMD L_COUNT L_COUNT_P MATCH HEADER FLAGS \
-		MIMETYPE
+		MIMETYPE SKIP_IF
 
 	. $1
+
+	if [[ -n $SKIP_IF ]]
+	then
+		print_test "skip test?"
+		if eval $SKIP_IF
+		then
+			print_result SKIP
+			return
+		fi
+
+	fi
 
 	[[ -n $PRE_CMD ]] && pre_cmd_test "$PRE_CMD"
 	[[ -n $L_COUNT ]] && line_test "$URI" $L_COUNT
@@ -255,6 +266,9 @@ function print_result
 	then
 		col=2
 		TESTS_PASSED=$(( $TESTS_PASSED + 1))
+	elif [[ $1 == "SKIP" ]]
+	then
+		col=4
 	else
 		col=1
 		TESTS_FAILED=$(( $TESTS_FAILED + 1))

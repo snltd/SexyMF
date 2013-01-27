@@ -67,7 +67,7 @@ smfApp.setupApp({name: "SexyMF"});
 
 // Cache a bit of info, and start the server listening
 
-smfApp.populateCache(function() {
+smfApp.populatePCache(function() {
 	smfApp.startApp(options.port);
 });
 

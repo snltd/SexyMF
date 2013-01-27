@@ -4,12 +4,12 @@
 # was restarted
 
 URI="/smf/@/svcadm/restart"
-DATA="svc=name-service-cache"
+DATA="svc=fmd"
 A_USER="manager:plainpass"
 HEADER=200
 MATCH="Command complete"
 MIMETYPE="application/json"
 PRE_CMD='svcs name-service-cache | egrep -s online'
-POST_CMD='d=$(date "+%H:%M"); svcs | tail -1 | egrep -s "${d#0}.*name-service-cache"'
+POST_CMD='d=$(date "+%H:%M"); svcs | tail -1 | egrep -s "${d#0}.*fmd"'
 # I know that's weird and ugly, but ksh isn't behaving on my OmniOS box.
 # That's a workaround
