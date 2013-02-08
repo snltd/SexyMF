@@ -1,6 +1,6 @@
 # Run svccfg archive as a user without sufficient authorizations
 
-SKIP_IF='[[ $(svccfg help 2>&1 | grep -c archive) == 0 ]]'
+SKIP_IF="test $(svccfg help 2>&1 | grep -c archive) -eq 0"
 URI="/smf/@/svccfg/archive"
 A_USER="viewer:plainpass"
 HEADER=403

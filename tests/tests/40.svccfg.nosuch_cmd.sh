@@ -3,5 +3,5 @@
 URI="/smf/@/svccfg/nosuch"
 A_USER="viewer:plainpass"
 HEADER=404
-MATCH="Unknown command: nosuch"
+MATCH="Unknown or incorrectly formed command: nosuch"
 MIMETYPE="application/json"

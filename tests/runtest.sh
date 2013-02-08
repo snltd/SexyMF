@@ -5,8 +5,9 @@
 # runtest.sh
 # ----------
 #
-# Test harness for SexyMF. Adapts itself to your system, but you will need
-# properly set up users.
+# Test harness for SexyMF. Roughly adapts itself to your system, but you
+# will need properly set up users. This has grown very quickly, and very
+# organically, and it shows.
 #
 # R Fisher 2013
 #
@@ -15,7 +16,9 @@
 #-----------------------------------------------------------------------------
 # VARIABLES
 
-PATH=/usr/bin:/usr/local/node/bin
+MYROOT=$(cd ${0%/*}; pwd)
+
+PATH=/usr/bin:/usr/local/node/bin:/usr/sbin
 	# You might need to change this so it can find the 'json' executable.
 
 BASE="https://0:9206"
@@ -31,7 +34,7 @@ TESTS_PASSED=0
 TESTS_FAILED=0
 
 typeset -L60 LFIELD
-typeset -R17 RFIELD
+typeset -R16 RFIELD
 
 #-----------------------------------------------------------------------------
 # FUNCTIONS
@@ -194,8 +197,8 @@ function pre_cmd_test
 
 	print_test "pre command test"
 
-	eval $1
-	handle_result "$1" $?
+	eval $*
+	handle_result "$*" $?
 }
 
 function post_cmd_test
@@ -205,8 +208,8 @@ function post_cmd_test
 
 	print_test "post command test"
 
-	eval $1
-	handle_result "$1" $?
+	eval $*
+	handle_result "$*" $?
 }
 
 function run_test
@@ -224,20 +227,24 @@ function run_test
 	if [[ -n $SKIP_IF ]]
 	then
 		print_test "skip test?"
-		if eval $SKIP_IF
+
+		if $SKIP_IF
 		then
 			print_result SKIP
 			return
+		else
+			print_result no
 		fi
+
 
 	fi
 
-	[[ -n $PRE_CMD ]] && pre_cmd_test "$PRE_CMD"
+	[[ -n $PRE_CMD ]] && pre_cmd_test $PRE_CMD
 	[[ -n $L_COUNT ]] && line_test "$URI" $L_COUNT
 	[[ -n $L_COUNT_P ]] && line_test_plain "$URI" $L_COUNT_P
 	[[ -n $MATCH ]] && match_test "$URI" "$MATCH"
 	[[ -n $DIFF_CMD ]] && diff_test "$URI" "$DIFF_CMD"
-	[[ -n $POST_CMD ]] && post_cmd_test "$POST_CMD"
+	[[ -n $POST_CMD ]] && post_cmd_test $POST_CMD
 
 	# Header and mimetype tests have to be last because the other tests dump
 	# a header file which they use
@@ -266,7 +273,7 @@ function print_result
 	then
 		col=2
 		TESTS_PASSED=$(( $TESTS_PASSED + 1))
-	elif [[ $1 == "SKIP" ]]
+	elif [[ $1 == "SKIP" || $1 == "no" ]]
 	then
 		col=4
 	else
@@ -288,6 +295,14 @@ then
 	exit 1
 fi
 
+# Load in the stest service
+
+svcadm disable stest 2>/dev/null
+svccfg delete stest 2>/dev/null
+svccfg import ${MYROOT}/manifest/stest.xml
+
+# If we don't have a list, run all tests
+
 if [[ -n $1 ]]
 then
 	testlist=$*
@@ -297,7 +312,7 @@ fi
 
 for t in $testlist
 do
-	[[ -f $t ]] || t="${0%/*}/tests/$t"
+	t=${MYROOT}/tests/${t##*/}
 
 	if [[ -f $t ]]
 	then
@@ -307,6 +322,5 @@ do
 	fi
 
 done
-
 
 do_exit

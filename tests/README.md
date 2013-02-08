@@ -18,3 +18,7 @@ Requires `curl`, and Node's `json`.
 It also requires you have the right users set up with the right
 authorizations, and that your SexyMF user has the privileges to run all
 operations.
+
+Some of the non-destructive tests query the SSH service, but most tests
+operate on a dummy `stest` service. The manifest is in the `manifest`
+directory, and it has to be in your repository.

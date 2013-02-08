@@ -272,6 +272,11 @@ the flags you require. SexyMF has a look-up list of allowable flags for
 each `svcadm` sub-command in the config file, and if a user tries to set a
 flag which is not in the appropriate list, he wil receive an error.
 
+The `mark` subcommand requires you pass a state with the `state` variable.
+If you fail to do this, or specify a state `svcadm` does not understand,
+you will get a 404 error and be told you have supplied an `Unknown or
+incorrectly formed command`.
+
 Sending an invalid service name or an invalid command will result in a 409
 error and a JSON object which attempts to identify the bad data. A missing
 command is a 404.
@@ -286,13 +291,13 @@ command, the user will get back a 500 error, with the standard error from
 Service properties are changed with the `svcccg(1m)` command. This requires
 elevated privileges (see below), and as changes system state, we do it as a
 `POST` operation. As with `svcadm`, the sub-command is the final argument.
+To change or delete properties, a user requires the `alter` authorization.
 
-To add or change a property:
+Tshouldo add or change a property:
 
 	 # svccfg -s apache setprop start/project = astring: webproj
      POST svc=apache&prop=start/project&type=astring&val=webproj http://host:9206/smf/@/svccfg/setprop HTTP/1.1
 
-      property_group_1: {
 If you are changing an existing property, the `type` variable is optional,
 but if you are adding a new one, it is mandatory. This is how `svccfg`
 behaves -- all the API does is feed it parameters.
@@ -303,9 +308,9 @@ To delete a property
 	POST svc=apache&prop=start/project http://host:9206/smf/@/svccfg/delprop HTTP/1.1
 
 If the operation succeeds the user receives a 200 header and a JSON object
-containing the string `command complete`.
+containing the string `Command complete`.
 
-Once a property is changed or added, you should issue a `svcadm refresh`
+Once a property is changed or added, you need to issue a `svcadm refresh`
 command to put the new value in the service's environment.
 
 A missing or unsupported command results in a 404 error.
@@ -445,7 +450,7 @@ example:
 
     "myuser": {
       "password": "sha1$498e6519$1$9ec4ded71edb6d1b8c2b634df1901d1b18b2b979",
-      "auths": [ "view", "setprop", "manage" ]
+      "auths": [ "view", "manage" ]
     }
 
 Here, the password string is an SHA hash of the string `mypassword`. It was
@@ -468,7 +473,7 @@ Authorizations are:
  * archive - lets a user run `svccfg archive`, if the system supports it
  * log - lets a user access service log files
  * manage - lets a user run `enable`, `disable`, `refresh` etc. via `svcadm`
- * setprop - required to set or delete service properties
+ * alter - required to set or delete service properties (alter the service)
 
 If a user tries to perform an action for which he does not have the correct
 authorization, he will be sent a 405 code, with some JSON explaining that he

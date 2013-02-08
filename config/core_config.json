@@ -20,7 +20,10 @@
 			"disable": {
 				"flags": [ "-t" ]
 			},
-			"clear" : {}
+			"clear" : {},
+			"mark": {
+				"flags": [ "-t" ]
+			}
 		},
 		"/usr/sbin/svccfg": {}
 		}

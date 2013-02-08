@@ -15,7 +15,7 @@
 		"myuser": {
 			"password":
 				"sha1$498e6519$1$9ec4ded71edb6d1b8c2b634df1901d1b18b2b979",
-			"auths": [ "view", "setprop", "manage" ]
+			"auths": [ "view", "manage" ]
 		},
 		"viewer": {
 			"password": "plainpass",
@@ -32,6 +32,10 @@
 		"manager": {
 			"password": "plainpass",
 			"auths": [ "view", "manage" ]
+		},
+		"tamperer": {
+			"password": "plainpass",
+			"auths": [ "view", "manage", "alter" ]
 		}
 	},
 

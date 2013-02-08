@@ -1,0 +1,33 @@
+<?xml version='1.0'?>
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+<service_bundle type='manifest' name='export'>
+  <service name='application/stest' type='service' version='0'>
+	<create_default_instance enabled='true' />
+    <single_instance/>
+
+    <dependency name='usr' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/filesystem/minimal'/>
+    </dependency>
+
+    <exec_method name='start' type='method' exec='/usr/bin/true' timeout_seconds='60'/>
+    <exec_method name='stop' type='method' exec=':true' timeout_seconds='60'/>
+    <property_group name='test_params' type='application'>
+      <propval name='p01' type='astring' value='one'/>
+      <propval name='p02' type='astring' value='two'/>
+      <propval name='p03' type='astring' value='three'/>
+    </property_group>
+    <property_group name='startd' type='framework'>
+      <propval name='duration' type='astring' value='transient'/>
+    </property_group>
+    <property_group name='general' type='framework'>
+      <property name='action_authorization' type='astring'/>
+      <property name='value_authorization' type='astring'/>
+    </property_group>
+    <stability value='Unstable'/>
+    <template>
+      <common_name>
+        <loctext xml:lang='C'>dummy test service for SexyMF</loctext>
+      </common_name>
+    </template>
+  </service>
+</service_bundle>
