@@ -496,9 +496,8 @@ SexyMF should be compatible with any SunOS system running SMF. This includes
 Sun Solaris 10, Oracle Solaris 11, and Illumos derivatives such as SmartOS
 and OmniOS. Some features dealing with non-global zones may be quicker to
 appear for Illumos OSes, as they have a more complete interface to SMF,
-making some things easier to implement. Currently, on Solaris 10 or 11, you
-cannot query any zone other than the one you are in, but the final aim is to
-provide the same level of service across all SunOS platforms.
+making some things easier to implement. Currently support is equal across
+all platforms, though different OS configuration is required to achieve it.
 
 ## Operations Which are Not Supported
 

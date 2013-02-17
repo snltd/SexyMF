@@ -20,11 +20,15 @@ MYROOT=$(cd ${0%/*}; pwd)
 
 PATH=/usr/bin:/usr/local/node/bin:/usr/sbin
 	# You might need to change this so it can find the 'json' executable.
+	# "npm install -g jsontool" if you don't have it.
 
 BASE="https://0:9206"
 HFILE=$(mktemp)
 TEST_FILE=$(mktemp)
 REF_FILE=$(mktemp)
+
+ZONE=$(zoneadm list | sed -n 2p)
+	# Use the first non-global zone for zone tests
 
 ABORT_ON_ERROR=1
 	# uncomment this to have the script exit if a test fails
@@ -33,8 +37,12 @@ TESTS_RUN=0
 TESTS_PASSED=0
 TESTS_FAILED=0
 
+[[ $(uname -r) == "5.11" ]] && TPUT=tput || TPUT=true
+	# colour can only be trusted on 5.11
+
 typeset -L60 LFIELD
 typeset -R16 RFIELD
+
 
 #-----------------------------------------------------------------------------
 # FUNCTIONS
@@ -220,7 +228,7 @@ function run_test
 	print "${1##*/}"
 
 	unset POST_CMD PRE_CMD DIFF_CMD L_COUNT L_COUNT_P MATCH HEADER FLAGS \
-		MIMETYPE SKIP_IF
+		MIMETYPE SKIP_IF DATA
 
 	. $1
 
@@ -259,7 +267,7 @@ function print_test
 	# print_result
 
 	LFIELD=$1
-	print -n "  $LFIELD"
+	print -n "   $LFIELD"
 }
 
 function print_result
@@ -281,9 +289,9 @@ function print_result
 		TESTS_FAILED=$(( $TESTS_FAILED + 1))
 	fi
 
-	tput setaf $col
+	$TPUT setaf $col
 	print "$RFIELD"
-	tput sgr0
+	$TPUT sgr0
 }
 
 #-----------------------------------------------------------------------------
@@ -297,9 +305,12 @@ fi
 
 # Load in the stest service
 
-svcadm disable stest 2>/dev/null
-svccfg delete stest 2>/dev/null
-svccfg import ${MYROOT}/manifest/stest.xml
+#svcadm disable stest 2>/dev/null
+#svccfg delete stest 2>/dev/null
+
+print -n "importing test service: "
+
+#svccfg import ${MYROOT}/manifest/stest.xml && print "ok" || print "failed"
 
 # If we don't have a list, run all tests
 

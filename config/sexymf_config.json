@@ -8,6 +8,7 @@
 
 	"external_bins": {
 		"/usr/sbin/zlogin": {},
+		"/bin/tail": {},
 		"/bin/ppriv": {},
 		"/bin/zonename": {},
 		"/bin/svcs": {},
@@ -26,7 +27,13 @@
 				"flags": [ "-t" ]
 			}
 		},
-		"/usr/sbin/svccfg": {}
+		"/usr/sbin/svccfg": {
+			"archive": {},
+			"export": {},
+			"extract": {
+				"flags": [ "-a" ]
+			}
+		}
 	},
 
 	// Only clients from these IP addresses can connect
