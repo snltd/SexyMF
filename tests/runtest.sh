@@ -43,7 +43,6 @@ TESTS_FAILED=0
 typeset -L60 LFIELD
 typeset -R16 RFIELD
 
-
 #-----------------------------------------------------------------------------
 # FUNCTIONS
 

@@ -90,6 +90,10 @@
 
 	"verbose" : true,
 
+	// Use zlogin to run NGZ commands on Illumos
+
+	//"force_zlogin": true,
+
 	// Unless told otherwise, send the last "this many" lines of log file
 
 	"loglines": 100,
