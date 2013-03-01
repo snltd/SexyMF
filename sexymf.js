@@ -18,10 +18,10 @@
 // modules. Kind of in descending order of how much I trust them.
 
 var path = require('path'),
-	optparse = require('optparse'),
-	smfConfig = require('./lib/smfConfig.js'),
-	smfPreflight = require('./lib/smfPreflight'),
-	smfApp = require('./lib/smfApp');
+		optparse = require('optparse'),
+		smfConfig = require('./lib/smfConfig.js'),
+		smfPreflight = require('./lib/smfPreflight'),
+		smfApp = require('./lib/smfApp');
 
 // chdir to the directory this file is in, so the config paths work
 
@@ -34,12 +34,12 @@ smfPreflight.runChecks();
 // Option parsing with optparse
 
 var SWITCHES = [
-		[ '-p', '--port NUMBER', 'listen on this port' ],
-		[ '-V', '--version', 'print version and exit' ],
-		[ '-h', '--help', 'print this and exit' ]
-	],
-	parser = new optparse.OptionParser(SWITCHES),
-	options = { port: smfConfig.listen_port };
+			[ '-p', '--port NUMBER', 'listen on this port' ],
+			[ '-V', '--version', 'print version and exit' ],
+			[ '-h', '--help', 'print this and exit' ]
+		],
+		parser = new optparse.OptionParser(SWITCHES),
+		options = { port: smfConfig.listen_port };
 
 parser.banner = 'Usage: ' + path.basename(__filename) + ' [options]';
 

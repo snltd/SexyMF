@@ -304,12 +304,12 @@ fi
 
 # Load in the stest service
 
-#svcadm disable stest 2>/dev/null
-#svccfg delete stest 2>/dev/null
+svcadm disable stest 2>/dev/null
+svccfg delete stest 2>/dev/null
 
 print -n "importing test service: "
 
-#svccfg import ${MYROOT}/manifest/stest.xml && print "ok" || print "failed"
+svccfg import ${MYROOT}/manifest/stest.xml && print "ok" || print "failed"
 
 # If we don't have a list, run all tests
 
