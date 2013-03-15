@@ -28,7 +28,7 @@ a `curl` command and examine its output. The variables you can use are:
    different, the test has failed.
 
 Requires a system with at least one NGZ (it will use the first one it finds
-for zone tests); `curl`; and `json` from the `jsontools` module.
+for zone tests); `curl`; and `json` from the `jsontool` module.
 
 It also requires you have the right users set up with the right
 authorizations, and that your SexyMF user has the privileges to run all

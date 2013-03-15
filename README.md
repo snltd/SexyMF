@@ -41,6 +41,14 @@ You need a SunOS system with SMF. So, that's anything that says `5.10` or
 `node` binary needs to be in the `PATH` of the user you intend to run SexyMF
 as.
 
+If you are running Solaris 11 or an Illumos derivative such as SmartOS,
+OmniOS or OpenIndiana, you can get node from [the offical Node download
+page](http://nodejs.org/download/). If you are running Solaris 10, [Peter
+Tribble maintains an excellent
+port](http://www.petertribble.co.uk/Solaris/node.html) which installs every
+required file in a single SYSV package. 32- and 64-bit versions should both
+be fine.
+
 A quick way to get up and running is to clone the Github repository and ask
 `npm` to install the required modules.
 
@@ -315,6 +323,16 @@ command to put the new value in the service's environment.
 
 A missing or unsupported command results in a 404 error.
 
+### Getting SexyMF status
+
+If you have `show_status` set to `true` in the config file, a request of the
+form
+
+    GET http://host:9206/smf/status HTTP/1.1
+
+will return a JSON object containing information about SexyMF and its
+environment.
+
 
 # Configuration and Security
 
@@ -481,12 +499,14 @@ have to restart SexyMF. This may change in the future.
 
 Authorizations are:
 
- * view - lets a user run any of the `GET` methods above, except for `svccfg
-   archive` and log access.
- * archive - lets a user run `svccfg archive`, if the system supports it
- * log - lets a user access service log files
- * manage - lets a user run `enable`, `disable`, `refresh` etc. via `svcadm`
- * alter - required to set or delete service properties (alter the service)
+ * `view` - lets a user run any of the `GET` methods above, except for
+   `svccfg archive` and log access.
+ * `archive` - lets a user run `svccfg archive`, if the system supports it
+ * `log` - lets a user access service log files
+ * `manage` - lets a user run `enable`, `disable`, `refresh` etc. via
+   `svcadm`
+ * `alter` - required to set or delete service properties (alter the
+   service)
 
 If a user tries to perform an action for which he does not have the correct
 authorization, he will be sent a 405 code, with some JSON explaining that he
@@ -511,9 +531,14 @@ decided on an elegant way to implment their configuration.
 SexyMF should be compatible with any SunOS system running SMF. This includes
 Sun Solaris 10, Oracle Solaris 11, and Illumos derivatives such as SmartOS
 and OmniOS. Some features dealing with non-global zones may be quicker to
-appear for Illumos OSes, as they have a more complete interface to SMF,
-making some things easier to implement. Currently support is equal across
-all platforms, though different OS configuration is required to achieve it.
+appear for Illumos OSes, as they have better capabilities to query services
+in zones, making some things easier to implement. Currently support is equal
+across all platforms, though different OS configuration is required to
+achieve it.
+
+SexyMF is developed and tested with Solaris 11 on x64 hardware, and with
+OmniOS under VirtualBox. It is also frequently tested with Solaris 10 and
+SmartOS VirtualBoxes, and with Solaris 10 on SPARC hardware.
 
 ## Operations Which are Not Supported
 

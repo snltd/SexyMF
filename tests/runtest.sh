@@ -227,7 +227,7 @@ function run_test
 	print "${1##*/}"
 
 	unset POST_CMD PRE_CMD DIFF_CMD L_COUNT L_COUNT_P MATCH HEADER FLAGS \
-		MIMETYPE SKIP_IF DATA
+		MIMETYPE SKIP_IF DATA A_USER
 
 	. $1
 
@@ -310,6 +310,13 @@ svccfg delete stest 2>/dev/null
 print -n "importing test service: "
 
 svccfg import ${MYROOT}/manifest/stest.xml && print "ok" || print "failed"
+
+cp ${MYROOT}/manifest/stest.xml /zones/$ZONE/root
+
+zlogin $ZONE svcadm disable stest 2>/dev/null
+zlogin $ZONE svccfg delete stest 2>/dev/null
+zlogin $ZONE svccfg import /stest.xml
+zlogin $ZONE svcadm disable stest
 
 # If we don't have a list, run all tests
 

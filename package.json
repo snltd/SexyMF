@@ -1,6 +1,6 @@
 {
 	"name": "SexyMF",
-	"version": "0.7.0",
+	"version": "1.0.0",
 	"description": "Web API to Solaris/Illumos's SMF",
 	"author": {
 		"name": "Robert Fisher",
