@@ -191,7 +191,7 @@ function diff_test
 	print_test "diff test"
 
 	eval $cmd
-	$2 >$REF_FILE 2>&1
+	$2 >$REF_FILE 2>/dev/null
 
 	cmp -s $TEST_FILE $REF_FILE
 	handle_result "$cmd" $?
