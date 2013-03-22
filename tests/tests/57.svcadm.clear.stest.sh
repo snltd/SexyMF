@@ -1,6 +1,6 @@
 # Put stest back online
 
-PRE_CMD='svcs stest | egrep -s maintenance'
+PRE_CMD='svcadm mark maintenance stest'
 URI="/smf/@/svcadm/clear"
 DATA="svc=stest"
 A_USER="manager:plainpass"
