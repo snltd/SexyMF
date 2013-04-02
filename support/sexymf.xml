@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+
+<!--
+	SMF manifest to run SexyMF. Runs as 'sexymf' user. Assumes it is installed
+	in /opt/SexyMF, but this can be changed through the 'base' property. If
+	your node binary isn't in /usr/bin, set the 'nodebin' property to the
+	directory containing it.
+
+	start - start SexyMF daemon
+	stop - stop SexyMF daemon
+
+	R Fisher / SNLTD 04/2013
+-->
+
+<service_bundle type='manifest' name='export'>
+
+	<service name='snltd/sexymf' type='service' version='0'>
+		<single_instance/>
+
+		<property_group name='options' type='application'>
+			<propval name='base' type='astring' value='/opt/SexyMF'/>
+			<propval name='nodebin' type='astring' value='/usr/local/node/bin'/>
+		</property_group>
+
+		<instance name='default' enabled='true'>
+
+			<dependency name='milestone'
+				grouping='require_all'
+				restart_on='error'
+				type='service'>
+
+				<service_fmri value='svc:/milestone/multi-user-server:default'/>
+			</dependency>
+
+			<exec_method name='start'
+				type='method'
+				exec='%{options/base}/sexymf.js -d'
+				timeout_seconds='60'>
+
+				<method_context>
+
+					<method_credential
+						user='sexymf'
+						group='sexymf'/>
+
+					<method_environment>
+						<envvar name="PATH" value="/bin:%{options/nodebin}" />
+					</method_environment>
+
+				</method_context>
+
+			</exec_method>
+
+			<exec_method name='stop'
+				type='method'
+				exec=':kill'
+				timeout_seconds='60'>
+				<method_context/>
+			</exec_method>
+
+		</instance>
+
+		<stability value='Unstable'/>
+
+		<template>
+			<common_name>
+				<loctext xml:lang='C'>SexyMF - SMF API daemon</loctext>
+			</common_name>
+		</template>
+
+	</service>
+
+</service_bundle>
+

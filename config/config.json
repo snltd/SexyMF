@@ -61,7 +61,7 @@
 			"disable": {
 				"flags": [ "-t" ]
 			},
-			"clear" : {},
+			"clear": {},
 			"mark": {
 				"flags": [ "-t" ]
 			}
@@ -88,6 +88,13 @@
 
 	//------------------------------------------------------------------------
 	// LOGGING AND OUTPUT
+
+	// The audit_log turns on a Restify's audit logging plugin. Specify a
+	// path to the file to which you wish the log to be written.
+
+	"log": {
+		"audit_log": "/tmp/audit_log"
+	},
 
 	"verbose" : true,
 

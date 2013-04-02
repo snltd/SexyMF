@@ -227,7 +227,7 @@ function run_test
 	print "${1##*/}"
 
 	unset POST_CMD PRE_CMD DIFF_CMD L_COUNT L_COUNT_P MATCH HEADER FLAGS \
-		MIMETYPE SKIP_IF DATA A_USER
+		MIMETYPE SKIP_IF DATA A_USER SET_UP
 
 	. $1
 
@@ -246,6 +246,7 @@ function run_test
 
 	fi
 
+	[[ -n $SET_UP ]] && eval $SET_UP
 	[[ -n $PRE_CMD ]] && pre_cmd_test $PRE_CMD
 	[[ -n $L_COUNT ]] && line_test "$URI" $L_COUNT
 	[[ -n $L_COUNT_P ]] && line_test_plain "$URI" $L_COUNT_P

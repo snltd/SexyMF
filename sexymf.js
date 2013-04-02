@@ -34,6 +34,7 @@ smfPreflight.runChecks();
 // Option parsing with optparse
 
 var SWITCHES = [
+			[ '-d', '--daemon', 'run as a daemon' ],
 			[ '-p', '--port NUMBER', 'listen on this port' ],
 			[ '-V', '--version', 'print version and exit' ],
 			[ '-h', '--help', 'print this and exit' ]
@@ -42,6 +43,10 @@ var SWITCHES = [
 		options = { port: smfConfig.listen_port };
 
 parser.banner = 'Usage: ' + path.basename(__filename) + ' [options]';
+
+parser.on('daemon', function() {
+	require('daemon')();
+});
 
 parser.on('port', function(value) {
 	options.port = value;

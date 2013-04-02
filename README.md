@@ -10,8 +10,8 @@ RESTful HTTP API.
 
 It runs as a Node.js process, listening (by default on port 9206) for HTTP
 requests, which it passes on to SMF via calls to the normal userland
-commands like `svcs(1)`, `svccfg(1M)` and `svcadm(1M)`. Responses are sent
-back to the client as JSON objects.
+commands like `svcs(1)`, `svccfg(1M)` and `svcadm(1M)`. Responses are
+usually sent back to the client as JSON objects.
 
 Where possible, the URIs used to access the API try to mimic the SMF
 commands with which the user should already be familiar.
@@ -49,19 +49,20 @@ port](http://www.petertribble.co.uk/Solaris/node.html) which installs every
 required file in a single SYSV package. 32- and 64-bit versions should both
 be fine.
 
-A quick way to get up and running is to clone the Github repository and ask
-`npm` to install the required modules.
+Once you have a suitable Node installation, a quick way to get up and
+running is to clone the Github repository and ask `npm` to install the
+required modules.
 
     $ git clone https://github.com/snltd/SexyMF.git
 	$ cd SexyMF
 	$ npm install
 
-There are a couple of caveats: SexyMF is built on
+There are a couple of potential snags: SexyMF is built on
 [Restify](http://mcavage.github.com/node-restify), which incorporates
 DTrace, which means compiling the Node DTrace module, which means GCC.
-Sorry. Second, you may find that a build fails with a `make` usage error.
-If that happens, it's using the Sun `make`, and it requires the GNU version,
-so fiddle with your path until that's fixed.
+Sorry. Second, you may find that the Restify build fails with a `make` usage
+error.  If that happens, it's using the Sun `make`, and it requires the GNU
+version, so fiddle with your path until that's fixed.
 
 To start the server, run `sexymf.js`.
 
@@ -71,7 +72,7 @@ To start the server, run `sexymf.js`.
 The root URI of the API is `/smf`, followed by the name of the zone you wish
 to query, followed by the command you wish to access. Service names,
 properties, flags and other values are passed as query string or form
-variables, depending on the HTTP verb being used. In connect terms:
+variables, depending on the HTTP verb being used. In Connect terms:
 
     /smf/:zone/:command?variables
 
@@ -85,9 +86,9 @@ guaranteed. (I've seen it. They know who they are.)
 
 You can use an `@` sign as a shorthand to always refer to the zone in which
 SexyMF is running. (Hereafter referred to as "the local zone", even though
-it may be a global zone. I hope that isn't confusing.)
+it may be the global zone. I hope that isn't confusing.)
 
-In this interface, 'resources' are the SMF commands, rather than the
+In this interface, "resources" are the SMF commands, rather than the
 services on which they act. This may seem backwards, but we do it that way
 because FMRIs and property names can contain slashes, which makes it
 difficult to distinguish them from the API URI path. As it's possible to
@@ -96,7 +97,9 @@ name as part of the URI would also lead to us having multiple paths to the
 same resource, which is undesirable.  As such, we do not use the `PUT` or
 `DELETE` verbs, which would suggest an attempt to remove an SMF tool, not a
 service. All state modification is done by `POST`. You are, after all,
-always updating a database. (The SMF repository.)
+always updating a database. (The SMF repository.) If this offends your
+refined academic understanding of RESTfulness, go whine about it on
+HackerNews, or do a better job yourself.
 
 The FMRI service name you give to the API goes straight through to the
 external commands. Input is sanity checked to screen out code injection and
@@ -114,13 +117,13 @@ change state on the server, so are accessed through the HTTP `GET` verb.
 To list all installed services.
 
     $ svcs -a
-    GET http://host:9206/smf/@/svcs HTTP/1.1
+    GET /smf/@/svcs HTTP/1.1
 
 Use of the `state` variable allows you to filter on service state. It's like
 running `svcs -a` and passing the output through `grep`.
 
     $ svcs -a | grep ^online
-    GET http://host:9206/smf/@/svcs?state=online HTTP/1.1
+    GET /smf/@/svcs?state=online HTTP/1.1
 
 This returns an array of JSON objects, each containing 'fmri', 'state', and
 'stime' fields, echoing the column headers in the output of `svcs(1)`.
@@ -128,12 +131,12 @@ This returns an array of JSON objects, each containing 'fmri', 'state', and
 To list disabled services:
 
     $ svcs -a | grep ^disabled
-    GET http://host:9206/smf/@/svcs?state=disabled HTTP/1.1
+    GET /smf/@/svcs?state=disabled HTTP/1.1
 
 To list services in the maintenance state
 
     $ svcs -a | grep ^maintenance
-    GET http://host:9206/smf/@/svcs?state=maintenance HTTP/1.1
+    GET /smf/@/svcs?state=maintenance HTTP/1.1
 
 The final part of the URI is the state that will be returned, so should new
 statuses appear in SMF, they will be automatically handled.
@@ -146,7 +149,7 @@ To get the status of a single service you still use the `svcs` path, but
 specify the service FMRI using the `svc` variable.  For example:
 
     $ svcs -H system/system-log:default
-    GET http://host:9206/smf/@/svcs?svc=system/system-log:default HTTP/1.1
+    GET /smf/@/svcs?svc=system/system-log:default HTTP/1.1
 
 If there are multiple instances of the service (for instance `console-login`
 on systems with the virtual console driver), you will receive an array of
@@ -176,7 +179,7 @@ The CLI tool to query service properties is `svcprop`, so that is also the
 final part of the URI.  To get all of a service's properties
 
     $ svcprop svc:/system/system-log:default
-    GET http://host:9206/smf/@/svcprop?svc=system/system-log:default HTTP/1.1
+    GET /smf/@/svcprop?svc=system/system-log:default HTTP/1.1
 
 This discards the value datatype and returns the service properties as
 hierarchical JSON object. Property groups are top-level objects, with
@@ -200,11 +203,11 @@ service" error is returned.
 To get a single service property
 
     $ svcprop -p start/exec svc:/system/system-log:default
-    GET http://host:9206/smf/@/svcprop?svc=system/system-log:default&prop=start/exec HTTP/1.1
+    GET /smf/@/svcprop?svc=system/system-log:default&prop=start/exec HTTP/1.1
 
 To get multiple service properties, pass them as a comma-separated list:
 
-    GET http://host:9206/smf/@/svcprop?svc=system/system-log:default&prop=start/exec,stop/exec HTTP/1.1
+    GET /smf/@/svcprop?svc=system/system-log:default&prop=start/exec,stop/exec HTTP/1.1
 
 Asking for a non-existent property will result in an empty object. Querying
 a non-existent service is considered user error, so the API returns a 404.
@@ -216,7 +219,7 @@ flags through to the command.
 
 You can get the last 'n' lines of a service's log file by calling
 
-    GET http://host:9206/smf/@/log?svc=system/ssh:default HTTP/1.1
+    GET /smf/@/log?svc=system/ssh:default HTTP/1.1
 
 If the log does not exist or cannot be read, an error is returned. By
 default the last 100 lines of the file are sent to the client. This can be
@@ -227,7 +230,10 @@ If a log file cannot be found, a 500 error is sent, as the code assumes
 either it or Solaris has incorrectly supposed where the log file should be.
 The supposed location of the file is sent to the user.
 
-Logs are passed to the client as plain text. (`text/plain` mimetype.)
+Logs are passed to the client as plain text. (`text/plain` mimetype.) I've
+flip-flopped over this design decision, but as a user it makes more sense to
+get a logfile as a logfile, rather than as a huge chunk of text as a value
+in a JSON object.
 
 To view logs, a user must have the `logview` authorization. If this is not
 the case, requests will be refused with a 403 error.
@@ -239,26 +245,26 @@ This is another `svccfg(1m)` job. It requires no elevated OS privileges, and
 the `view` authorization.
 
     $ svccfg export network/ssh
-    GET http://host:9206/smf/@/svccfg/export?svc=network/ssh HTTP/1.1
+    GET /smf/@/svccfg/export?svc=network/ssh HTTP/1.1
 
 Specifying a non-existent service triggers a 404 error.
 
 You can also extract the running SMF profile.
 
     $ svccfg extract
-    GET http://host:9206/smf/@/svccfg/export?svc=network/ssh HTTP/1.1
+    GET /smf/@/svccfg/export?svc=network/ssh HTTP/1.1
 
 On systems which support the `archive` command, you can use it to take an
 XML archive of the running repository. This may be useful for backups.  It
 requires the `archive` authorization.
 
 	$ svccfg archive
-    GET http://host:9206/smf/@/svccfg/archive HTTP/1.1
+    GET /smf/@/svccfg/archive HTTP/1.1
 
 The information is sent to the client as a chunked stream of XML, encoding
-type `application/xml`. Although all other SexyMF output is JSON, manifests,
-profiles and archives are in XML, so it seems sensible to transfer them
-that way.
+type `application/xml`. Although most SexyMF output is JSON, manifests,
+profiles and archives have to be in XML, so it seems sensible to transfer
+them that way.
 
 Importing manifests is not currently supported, but is planned for a future
 release. You cannot pass additional flags to `svccfg`.
@@ -273,12 +279,13 @@ but for conistency with the `svcs` commands, the service name is still
 passwd in with the `svc` variable.
 
 	 # svcadm restart system-log
-     POST svc=system-log http://host:9206/smf/@/svcadm/restart HTTP/1.1
+     POST svc=system-log /smf/@/svcadm/restart HTTP/1.1
 
 You can pass flags such as `-t` and `-s` by setting `flags=` to a list of
-the flags you require. SexyMF has a look-up list of allowable flags for
-each `svcadm` sub-command in the config file, and if a user tries to set a
-flag which is not in the appropriate list, he wil receive an error.
+the flags you require -- for instance `?flags=ts`. SexyMF has a look-up list
+of allowable flags for each `svcadm` sub-command in the config file, and if
+a user tries to set a flag which is not in the appropriate list, he wil
+receive an error.
 
 The `mark` subcommand requires you pass a state with the `state` variable.
 If you fail to do this, or specify a state `svcadm` does not understand,
@@ -293,6 +300,18 @@ If the SexyMF user doesn't have sufficient OS authorizations to run the
 command, the user will get back a 500 error, with the standard error from
 `svcadm` in the body.
 
+#### Kicking Services
+
+In response to [Illumos RFE #3596](https://www.illumos.org/issues/3596),
+SexyMF allows you to "kick" a service. If the service is online, it will be
+restarted; if it is disabled, it is enabled; if it is in maintenance mode,
+it will be cleared. If the service is in any other state, SexyMF will not
+know what to do, and return a 500 error.
+
+     POST svc=system-log /smf/@/kick HTTP/1.1
+
+Kick is a simple layer on top to the normal `svcadm` method. It therefore
+requires the `manager` authorization and suitable OS privileges.
 
 ### Adding, Changing, or Deleting Service Properties
 
@@ -301,10 +320,10 @@ elevated privileges (see below), and as changes system state, we do it as a
 `POST` operation. As with `svcadm`, the sub-command is the final argument.
 To change or delete properties, a user requires the `alter` authorization.
 
-Tshouldo add or change a property:
+To add or change a property, do something like:
 
 	 # svccfg -s apache setprop start/project = astring: webproj
-     POST svc=apache&prop=start/project&type=astring&val=webproj http://host:9206/smf/@/svccfg/setprop HTTP/1.1
+     POST svc=apache&prop=start/project&type=astring&val=webproj /smf/@/svccfg/setprop HTTP/1.1
 
 If you are changing an existing property, the `type` variable is optional,
 but if you are adding a new one, it is mandatory. This is how `svccfg`
@@ -313,13 +332,14 @@ behaves -- all the API does is feed it parameters.
 To delete a property
 
     # svccfg -s apache delprop start/project
-	POST svc=apache&prop=start/project http://host:9206/smf/@/svccfg/delprop HTTP/1.1
+	POST svc=apache&prop=start/project /smf/@/svccfg/delprop HTTP/1.1
 
 If the operation succeeds the user receives a 200 header and a JSON object
 containing the string `Command complete`.
 
 Once a property is changed or added, you need to issue a `svcadm refresh`
-command to put the new value in the service's environment.
+command to put the new value in the service's environment. Again, this is in
+line with standard SMF behaviour.
 
 A missing or unsupported command results in a 404 error.
 
@@ -328,7 +348,7 @@ A missing or unsupported command results in a 404 error.
 If you have `show_status` set to `true` in the config file, a request of the
 form
 
-    GET http://host:9206/smf/status HTTP/1.1
+    GET /smf/status HTTP/1.1
 
 will return a JSON object containing information about SexyMF and its
 environment.
@@ -342,12 +362,10 @@ access to different users and block or grant access to particular zones
 and/or services. This, however, is all sticking plaster to the conscientious
 admin, as the real security work configuring SexyMF is at the operating
 system level. If you only grant it the privileges it needs, it will be
-impossibly to abuse even if the application's security is breached.
+impossible to abuse even if the application's security is breached.
 
 
 ## Operating System Configuration
-
-Note: This section is a work in progress.
 
 Unless all you want to do is view the state and properties of services in
 the local zone, SexyMF requires elevated privileges. (In fact, SMF can hide
@@ -372,13 +390,14 @@ an application server following a code release. If this is the case, grant
 the relevant `solaris.smf.manage.` authorization to the user which SexyMF
 runs as. That will be `smfuser`, in the following examples. For instance:
 
-    # usermod -A solaris.smf.manage.apache smfuser
+	# usermod -A solaris.smf.manage.apache smfuser
 
 You can find a list of the authorizations in
 `/etc/security/auth_attr.d/SUNWcs`, `/etc/security/auth_attr.d/core-os`, or
-`/etc/security/auth_attr`, depending on your operating system, and you can
-find out what authorization is needed to manage a service by querying the
-service's `action_authorization` property. For example:
+`/etc/security/auth_attr`, depending on your operating system, and on
+relatively recent releases you can find out what authorization is needed to
+manage a service by querying the service's `action_authorization` property.
+For example:
 
     $ svcprop -p general/action_authorization ssh
 	solaris.smf.manage.ssh
@@ -444,23 +463,77 @@ also resepected in zones.
 
 ### Managing Services in Other Zones
 
+As mentioned above, you must specify a zone when you make a SexyMF API call.
+If the program is running in a global zone, you may specify a non-global
+zone, and SexyMF will attempt to perform the requested operation in that
+zone only. The mechanism by which it does this, and therefore the underlying
+OS configuration required for it to work, differs between SunOS
+implementations.
+
+#### Solaris
+
+On Solaris 10 and 11, commands to NGZs must be run through `zlogin(1)`. So,
+you have to run SexyMF as a user with privileges to do that.
+
+##### Solaris 10
+
+##### Solaris 11
+
+Solaris 11 introduced the zone `admin` property, which lets you assign NGZ
+management properties to a normal GZ user. This is done with `zonecfg(1m)`.
+
+    zonecfg:newzone> select admin user=sexymf
+    zonecfg:newzone:admin> set user=sexymf
+    zonecfg:newzone:admin> set auths=login,manage
+
+#### Illumos Derived Distributions
+
 On Illumos, some commands (`svcs`, `svcadm`, `svcprop`) have been extended
 with a `-z` flag, allowing you to query or restart services in NGZs from the
-global zone. By default, SexyMF will use this option if it is available.
+global zone. By default, SexyMF will use this option to operate on NGZs if
+it is available.
+
+To be able to view the states, properties, and log files of services in an
+NGZ from the global using the '-z' flag, the SexyMF user requires the
+`file_dac_read` and `file_dac_search` privileges. Don't enable these unless
+you are fully aware of what they mean and accept any consequences. With
+these privileges, the SexyMF user will be able to read ANY file on the host!
+To enable them:
+
+    # usermod -K defaultpriv=basic,file_dac_read,file_dac_search smfuser
+
+Or, to create a user capable of running all supported API operations in an
+NGZ, issue this command in the global zone:
+
+	# useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
+	  -P 'Service Management,Service Operator' \
+	  -K defaultpriv=basic,file_dac_read,file_dac_search smfuser
+
+To manage services in an NGZ, the SexyMF user needs to exist in global and
+local zones, and have appropriate SMF privileges granted through `usermod`,
+in BOTH zones. To create such a user, log in to the local zone and run:
+
+	# useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
+	  -P 'Service Management,Service Operator' smfuser
+
+If the NGZ user lacks privileges, `svcadm` will produce an error of the
+form:
+
+    svcadm: Unexpected libscf error on line 337: server has insufficient resources.
 
 At the time of writing `svccfg` does not have the `-z` option, so on
 Illumos, SexyMF performs its operations by opening the zone's
 `/etc/svc/repository.db` file and manipulating it directly.
 
-So, to manage services, logs, and properties in an NGZ from the global zone,
-the SexyMF user only requires the `file_dac_read` privilege.
+This is a problem. As an NGZ's repository file is owned by `root`, a global
+zone user requires the `ALL` privilege to rewrite it, and granting that
+privilege pretty much makes him root.
 
-On Solaris, commands to NGZs are run through `zlogin(1)`. So, you must run
-SexyMF as a user with privileges to do that.
-
-It is possibly to force Illumos to use `zlogin` in the same was as Solaris
-by setting `force_zlogin` to `true` in the configuration file.
-
+If you need to do this run `svccfg` commands in NGZs, I suggest running
+SexyMF with `force_login` set to `true` in the configuration file, and
+setting up the OS as you would for Solaris.  This means the Illumos
+extensions will be igored, and the `zlogin` method used for all NGZ
+operations.
 
 ## Access Control
 
@@ -519,12 +592,25 @@ in the config file, and seek professional help.
 ## Whitelists and Blacklists
 
 You can protect services and zones from being manipulated via the API using
-blacklists and/or whitelists in the `config/user_config.json` file. This
-should be seen as an _additional_ layer of security -- your services should
-be protected first and foremost by proper granting of RBAC privileges.
+blacklists and/or whitelists. This should be seen as an _additional_ layer
+of security -- your services should be protected first and foremost by
+proper granting of RBAC privileges.
 
-Blacklists and whitelists are currently work in progress. I haven't quite
-decided on an elegant way to implment their configuration.
+
+# Logging
+
+SexyMF uses the [Bunyan](https://github.com/trentm/node-bunyan) framework
+integrated in Restfiy.
+
+Restify provides a very powerful audit logging plugin, the output of which
+can be very useful when debugging SexyMF's behaviour. If you wish to enable
+it, set `log[audit_log]` to a writable path in the config file.
+
+## DTrace
+
+Because SexyMF uses the Restify framework, it contains DTrace probes. The
+best way to learn how to take advantage of these is from [the Restify
+documentation](http://mcavage.github.com/node-restify/#DTrace).
 
 # Compatibility
 
@@ -554,16 +640,16 @@ following are obvious current omissions.
  * anything to do with customizations
  * service descriptions
 
+## Versioning
+
+SexyMF uses [semantic
+versioning](https://github.com/twitter/bootstrap#versioning)
+
 ## API versioning
 
 There is currently no API versioning in SexyMF.
 
-## DTrace
-
-Because SexyMF uses the Restify framework, it contains DTrace probes. The
-best way to learn how to take advantage of these is from [the Restify
-documentation](http://mcavage.github.com/node-restify/#DTrace).
-
 # License
 
 SexyMF is issued under a BSD license.
+
