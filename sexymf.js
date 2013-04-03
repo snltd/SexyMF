@@ -18,29 +18,23 @@
 // modules. Kind of in descending order of how much I trust them.
 
 var path = require('path'),
-		optparse = require('optparse'),
-		smfConfig = require('./lib/smfConfig.js'),
-		smfPreflight = require('./lib/smfPreflight'),
-		smfApp = require('./lib/smfApp');
+		sys = require('sys'),
+		optparse = require('optparse');
 
 // chdir to the directory this file is in, so the config paths work
 
 process.chdir(__dirname);
 
-// Preflight checks #1
-
-smfPreflight.runChecks();
-
 // Option parsing with optparse
 
-var SWITCHES = [
-			[ '-d', '--daemon', 'run as a daemon' ],
-			[ '-p', '--port NUMBER', 'listen on this port' ],
-			[ '-V', '--version', 'print version and exit' ],
-			[ '-h', '--help', 'print this and exit' ]
-		],
-		parser = new optparse.OptionParser(SWITCHES),
-		options = { port: smfConfig.listen_port };
+var parser = new optparse.OptionParser([
+			['-c', '--config FILE', 'specify configuration file'],
+			['-d', '--daemon', 'run as a daemon (suppressing stdout)'],
+			['-p', '--port PORT_NUMBER', 'listen on this port'],
+			['-V', '--version', 'print version and exit'],
+			['-h', '--help', 'print usage information and exit']
+		]),
+		options = {};
 
 parser.banner = 'Usage: ' + path.basename(__filename) + ' [options]';
 
@@ -48,7 +42,14 @@ parser.on('daemon', function() {
 	require('daemon')();
 });
 
-parser.on('port', function(value) {
+// I don't really like using global, but it seems so much cleaner than
+// passing the filename to everything
+
+parser.on('config', function(name, value) {
+	options.config = value;
+});
+
+parser.on('port', function(name, value) {
 	options.port = value;
 });
 
@@ -64,6 +65,22 @@ parser.on('help', function() {
 
 parser.parse(process.argv);
 
+// Load in the config file
+
+var smfConfig = require('./lib/smfConfig.js')(options.config);
+
+if (!options.port) {
+	options.port = smfConfig.listen_port;
+}
+
+// Now we're able to load in our own modules
+//
+var	smfPreflight = require('./lib/smfPreflight'),
+		smfApp = require('./lib/smfApp');
+
+// Preflight checks
+
+smfPreflight.runChecks();
 smfPreflight.userCheck();
 
 // Call the app module, which sets up Restify and all the routing.

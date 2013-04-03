@@ -21,7 +21,7 @@
 
 		<property_group name='options' type='application'>
 			<propval name='base' type='astring' value='/opt/SexyMF'/>
-			<propval name='nodebin' type='astring' value='/usr/local/node/bin'/>
+			<propval name='nodebin' type='astring' value='/usr/local/node/bin/node'/>
 		</property_group>
 
 		<instance name='default' enabled='true'>
@@ -36,19 +36,14 @@
 
 			<exec_method name='start'
 				type='method'
-				exec='%{options/base}/sexymf.js -d'
+				exec='%{options/nodebin} %{options/base}/sexymf.js -d'
 				timeout_seconds='60'>
 
 				<method_context>
 
 					<method_credential
-						user='sexymf'
-						group='sexymf'/>
-
-					<method_environment>
-						<envvar name="PATH" value="/bin:%{options/nodebin}" />
-					</method_environment>
-
+						user='smfuser'
+						group='other'/>
 				</method_context>
 
 			</exec_method>

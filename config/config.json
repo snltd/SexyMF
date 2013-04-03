@@ -30,6 +30,11 @@
 
 	"use_auths": true,
 
+	// The path to the users file, if you are using one. Fully qualified, or
+	// relative to the sexymf.js executable.
+
+	"user_file": "config/users.json",
+
 	// 'show_status' tells the server whether or not to expose status
 	// information
 
@@ -99,4 +104,5 @@
 	"verbose" : true,
 
 	"blacklist": []
+
 }

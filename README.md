@@ -42,7 +42,7 @@ You need a SunOS system with SMF. So, that's anything that says `5.10` or
 as.
 
 If you are running Solaris 11 or an Illumos derivative such as SmartOS,
-OmniOS or OpenIndiana, you can get node from [the offical Node download
+OmniOS or OpenIndiana, you can get node from [the official Node download
 page](http://nodejs.org/download/). If you are running Solaris 10, [Peter
 Tribble maintains an excellent
 port](http://www.petertribble.co.uk/Solaris/node.html) which installs every
@@ -64,7 +64,24 @@ Sorry. Second, you may find that the Restify build fails with a `make` usage
 error.  If that happens, it's using the Sun `make`, and it requires the GNU
 version, so fiddle with your path until that's fixed.
 
-To start the server, run `sexymf.js`.
+## Invocation
+
+To start the server, run `sexymf.js`. The following options are supported:
+
+* `-d, --daemon`: run as a daemon. If this is not specified, SexyMF will run
+  in the foreground, with information being written to standard out. With
+  `-d`, the program will run silently, but will write logs.
+* `-p, --port PORT_NUMBER`: specify the port number that the program should
+  listen on. This can also be set via the `listen_port` value in the
+  configuration file, but a value specified on the command line will take
+  precedence. If you want to use a port below 1024, the SexyMF user must
+  have the `net_privaddr` privilege.
+* `-c, --config FILE`: specify the path to the configuration file SexyMF
+  should use. By default it will use `config/config.json`, at the same level
+  as the `sexymf.js` executable. If the configuration file cannot be found,
+  the program notifies the user and exits `1`.
+* `-V`, --version`: prints the version of SexyMF and exits `0`.
+* `-h`, --help`: prints usage information and exits `0`.
 
 
 ## API
@@ -80,7 +97,7 @@ Service names are always passed as a `svc` variable, and property names as
 `prop`.
 
 A zone's name is what you would get from running `zoneadm(1m)` inside it.
-Thus, a global zone will will be referred to as `global`. In an NGZ the zone
+Thus, a global zone will be referred to as `global`. In an NGZ the zone
 name will probably be the same as the hostname, but that can't be
 guaranteed. (I've seen it. They know who they are.)
 
@@ -98,12 +115,12 @@ same resource, which is undesirable.  As such, we do not use the `PUT` or
 `DELETE` verbs, which would suggest an attempt to remove an SMF tool, not a
 service. All state modification is done by `POST`. You are, after all,
 always updating a database. (The SMF repository.) If this offends your
-refined academic understanding of RESTfulness, go whine about it on
+refined academic understanding of RESTfulness, go cry about it on
 HackerNews, or do a better job yourself.
 
 The FMRI service name you give to the API goes straight through to the
 external commands. Input is sanity checked to screen out code injection and
-plain nonsense, but it's your responsiblity to use a correct, unambiguous
+plain nonsense, but it's your responsibility to use a correct, unambiguous
 FMRI just as if you were using the standard CLI tools. The same applies to
 service states, property names and datatypes.
 
@@ -275,8 +292,8 @@ release. You cannot pass additional flags to `svccfg`.
 This is normally done through the `svcadm(1m)` command, and requires
 elevated operating system privileges. It changes server state, so is
 accessed through the `POST` verb. The command is the last part of the URI,
-but for conistency with the `svcs` commands, the service name is still
-passwd in with the `svc` variable.
+but for consistency with the `svcs` commands, the service name is still
+passed in with the `svc` variable.
 
 	 # svcadm restart system-log
      POST svc=system-log /smf/@/svcadm/restart HTTP/1.1
@@ -284,12 +301,12 @@ passwd in with the `svc` variable.
 You can pass flags such as `-t` and `-s` by setting `flags=` to a list of
 the flags you require -- for instance `?flags=ts`. SexyMF has a look-up list
 of allowable flags for each `svcadm` sub-command in the config file, and if
-a user tries to set a flag which is not in the appropriate list, he wil
+a user tries to set a flag which is not in the appropriate list, he will
 receive an error.
 
 The `mark` subcommand requires you pass a state with the `state` variable.
-If you fail to do this, or specify a state `svcadm` does not understand,
-you will get a 404 error and be told you have supplied an `Unknown or
+If you fail to do this, or specify a state `svcadm` does not understand, you
+will get a 404 error and be told you have supplied an `Unknown or
 incorrectly formed command`.
 
 Sending an invalid service name or an invalid command will result in a 409
@@ -308,7 +325,7 @@ restarted; if it is disabled, it is enabled; if it is in maintenance mode,
 it will be cleared. If the service is in any other state, SexyMF will not
 know what to do, and return a 500 error.
 
-     POST svc=system-log /smf/@/kick HTTP/1.1
+	 POST svc=system-log /smf/@/kick HTTP/1.1
 
 Kick is a simple layer on top to the normal `svcadm` method. It therefore
 requires the `manager` authorization and suitable OS privileges.
@@ -380,7 +397,7 @@ and I wrote it.
 
 The best way to correctly grant SexyMF the privileges it needs to do the job
 you want it to do is to read and understand the `smf_security(5)` manual
-page, and devlop a set of additional privileges suitable for your site.
+page, and develop a set of additional privileges suitable for your site.
 Below are a few guidelines.
 
 Chances are you will only want to use SexyMF to manage a small number of
@@ -457,8 +474,8 @@ This means that SexyMF is free to execute `/bin/zonename`, but not
 `/usr/sbin/svccfg`. A user may run enable a service, but not restart one. He
 may pass the `-t` flag to `svcadm disable`, but not `-s`. This gives you a
 fine-grained control over permitted operations. SexyMF will not attempt to run
-any external program which is not in this list. The allowed comands list is
-also resepected in zones.
+any external program which is not in this list. The allowed commands list is
+also respected in zones.
 
 
 ### Managing Services in Other Zones
@@ -532,7 +549,7 @@ privilege pretty much makes him root.
 If you need to do this run `svccfg` commands in NGZs, I suggest running
 SexyMF with `force_login` set to `true` in the configuration file, and
 setting up the OS as you would for Solaris.  This means the Illumos
-extensions will be igored, and the `zlogin` method used for all NGZ
+extensions will be ignored, and the `zlogin` method used for all NGZ
 operations.
 
 ## Access Control
@@ -546,7 +563,9 @@ IP addresses are not difficult to spoof.
 
 SexyMF comes with a dummy self-signed certificate in 'config/ssl' which will
 get you up and running in SSL mode. To make the server use SSL, you need to
-set `useSSL` to `true` in `config/user_config.json`.
+set `useSSL` to `true` in `config/user_config.json`. [There are plenty of
+resources online](https://www.google.com/search?q=creating+ssl+certificates)
+to help you make certificates of your own.
 
 ## User Authentication
 
@@ -597,10 +616,10 @@ of security -- your services should be protected first and foremost by
 proper granting of RBAC privileges.
 
 
-# Logging
+# Logging and Debugging
 
 SexyMF uses the [Bunyan](https://github.com/trentm/node-bunyan) framework
-integrated in Restfiy.
+integrated in Restify.
 
 Restify provides a very powerful audit logging plugin, the output of which
 can be very useful when debugging SexyMF's behaviour. If you wish to enable
@@ -643,7 +662,7 @@ following are obvious current omissions.
 ## Versioning
 
 SexyMF uses [semantic
-versioning](https://github.com/twitter/bootstrap#versioning)
+versioning](https://github.com/twitter/bootstrap#versioning).
 
 ## API versioning
 
