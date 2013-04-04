@@ -94,15 +94,20 @@
 	//------------------------------------------------------------------------
 	// LOGGING AND OUTPUT
 
-	// The audit_log turns on a Restify's audit logging plugin. Specify a
-	// path to the file to which you wish the log to be written.
+	// The audit_log turns on a Restify's audit logging plugin. It will
+	// record lots of information about requests which did not end in a 200
+	// code.  Specify a path to the file to which you wish the log to be
+	// written, or omit the audit_log entry if you don't want to use it.
 
 	"log": {
-		"audit_log": "/tmp/audit_log"
+		"logfile": "/var/tmp/sexymf.log",
+		"audit_log": "/var/tmp/sexymf.audit_log"
 	},
 
-	"verbose" : true,
+	// The level to log at. debug, info etc. See the Bunyan docs for the
+	// full list.
+
+	"log_level": "debug",
 
 	"blacklist": []
-
 }

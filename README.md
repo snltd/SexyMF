@@ -494,6 +494,8 @@ you have to run SexyMF as a user with privileges to do that.
 
 ##### Solaris 10
 
+Coming soon.
+
 ##### Solaris 11
 
 Solaris 11 introduced the zone `admin` property, which lets you assign NGZ
@@ -503,7 +505,7 @@ management properties to a normal GZ user. This is done with `zonecfg(1m)`.
     zonecfg:newzone:admin> set user=sexymf
     zonecfg:newzone:admin> set auths=login,manage
 
-#### Illumos Derived Distributions
+#### Illumos Distributions
 
 On Illumos, some commands (`svcs`, `svcadm`, `svcprop`) have been extended
 with a `-z` flag, allowing you to query or restart services in NGZs from the
@@ -540,17 +542,15 @@ form:
 
 At the time of writing `svccfg` does not have the `-z` option, so on
 Illumos, SexyMF performs its operations by opening the zone's
-`/etc/svc/repository.db` file and manipulating it directly.
+`/etc/svc/repository.db` file and manipulating it directly.  This, however,
+is a problem. As an NGZ's repository file is owned by `root`, a global zone
+user requires the `ALL` privilege to rewrite it, and granting that privilege
+pretty much makes him root.
 
-This is a problem. As an NGZ's repository file is owned by `root`, a global
-zone user requires the `ALL` privilege to rewrite it, and granting that
-privilege pretty much makes him root.
-
-If you need to do this run `svccfg` commands in NGZs, I suggest running
-SexyMF with `force_login` set to `true` in the configuration file, and
-setting up the OS as you would for Solaris.  This means the Illumos
-extensions will be ignored, and the `zlogin` method used for all NGZ
-operations.
+If you need to run `svccfg` commands in NGZs, I suggest running SexyMF with
+`force_login` set to `true` in the configuration file, and setting up the OS
+as you would for Solaris.  This means the Illumos extensions will be
+ignored, and the `zlogin` method used for all NGZ operations.
 
 ## Access Control
 
@@ -619,17 +619,36 @@ proper granting of RBAC privileges.
 # Logging and Debugging
 
 SexyMF uses the [Bunyan](https://github.com/trentm/node-bunyan) framework
-integrated in Restify.
+integrated in Restify. Bunyan writes structured logs in JSON format, which
+makes them very easy to parse programatically. If you want to simply cast an
+eye over the logs, there is a `bunyan` command-line tool at
+`node_modules/restify/node_modules/.bin/bunyan`. Please refer to the Bunyan
+documentation for information on how to use it.
+
+SexyMF tries to record everything of any significance in its own field in
+the Bunyan logs. So, for instance, if you always wanted to know what UID the
+program started up as, you would simply have to parse the log files for the
+`uid` field. This information is sometimes repeated in the `msg` field, but
+don't depend on that being parseable. If you're trying to parse `msg`,
+you're doing it wrong.
+
+## Audit Logging
 
 Restify provides a very powerful audit logging plugin, the output of which
-can be very useful when debugging SexyMF's behaviour. If you wish to enable
-it, set `log[audit_log]` to a writable path in the config file.
+can be very useful when debugging SexyMF.  This audit log contains detailed
+information about any request which did not end with the client being sent a
+200 code.
+
+If you wish to enable it, set `log[audit_log]` to a writable path in the
+config file.
 
 ## DTrace
 
 Because SexyMF uses the Restify framework, it contains DTrace probes. The
 best way to learn how to take advantage of these is from [the Restify
-documentation](http://mcavage.github.com/node-restify/#DTrace).
+documentation](http://mcavage.github.com/node-restify/#DTrace). The Bunyan
+logging module also offers DTrace providers, which are [well
+documented](https://github.com/trentm/node-bunyan#dtrace-examples).
 
 # Compatibility
 
@@ -659,7 +678,7 @@ following are obvious current omissions.
  * anything to do with customizations
  * service descriptions
 
-## Versioning
+# Versioning
 
 SexyMF uses [semantic
 versioning](https://github.com/twitter/bootstrap#versioning).
