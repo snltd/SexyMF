@@ -79,9 +79,9 @@ To start the server, run `sexymf.js`. The following options are supported:
 * `-c, --config FILE`: specify the path to the configuration file SexyMF
   should use. By default it will use `config/config.json`, at the same level
   as the `sexymf.js` executable. If the configuration file cannot be found,
-  the program notifies the user and exits `1`.
-* `-V`, --version`: prints the version of SexyMF and exits `0`.
-* `-h`, --help`: prints usage information and exits `0`.
+  the program notifies the user and exits 1.
+* `-V, --version`: prints the version of SexyMF and exits 0.
+* `-h, --help`: prints usage information and exits 0.
 
 
 ## API
@@ -634,10 +634,9 @@ you're doing it wrong.
 
 ## Audit Logging
 
-Restify provides a very powerful audit logging plugin, the output of which
-can be very useful when debugging SexyMF.  This audit log contains detailed
-information about any request which did not end with the client being sent a
-200 code.
+Restify provides an audit logging plugin, the output of which can be useful
+when debugging SexyMF. This audit log contains detailed information about
+any request which did not end with the client being sent a 200 code.
 
 If you wish to enable it, set `log[audit_log]` to a writable path in the
 config file.

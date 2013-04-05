@@ -18,7 +18,6 @@
 // modules. Kind of in descending order of how much I trust them.
 
 var path = require('path'),
-		sys = require('sys'),
 		optparse = require('optparse');
 
 // chdir to the directory this file is in, so the config paths work
