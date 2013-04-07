@@ -660,9 +660,14 @@ across all platforms, though different OS configuration is required to
 achieve it.
 
 SexyMF is developed and tested with Solaris 11 on x64 hardware, and with
-OmniOS under VirtualBox. It is also frequently tested with Solaris 10 and
-SmartOS VirtualBoxes. There is no SPARC support, as V8, and therefore
-Node.js, won't build on SPARC. (Which, IMO, is a great shame.)
+OmniOS under VirtualBox. It is also frequently tested with various Solaris
+10 releases under VirtualBox and VMWare.  There is no SPARC support, as V8,
+and therefore Node.js, won't build on SPARC. (Which, IMO, is a great shame.)
+
+SexyMF assumes that the operating system has zone support. If you don't have
+the zone packages installed, the preflight checks will fail. I may remove
+this dependency in the future, but it seems unlikely anyone will be
+troubled by it.
 
 
 ## Operations Which are Not Supported

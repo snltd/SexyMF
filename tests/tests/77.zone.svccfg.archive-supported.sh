@@ -1,6 +1,6 @@
 # Run svccfg archive on a machine which supports that operation.
 
-SKIP_IF="test $(svccfg help 2>&1 | grep -c archive) -eq 0"
+SKIP_IF="svccfg archive a 2>&1 | egrep -s Unknown"
 URI="/smf/${ZONE}/svccfg/archive"
 A_USER="archiver:plainpass"
 HEADER=200

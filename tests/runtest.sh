@@ -18,7 +18,7 @@
 
 MYROOT=$(cd ${0%/*}; pwd)
 
-PATH=/usr/bin:/usr/local/node/bin:/usr/sbin
+PATH=/usr/bin:/usr/local/node/bin:/usr/sbin:/opt/Node/bin
 	# You might need to change this so it can find the 'json' executable.
 	# "npm install -g jsontool" if you don't have it.
 
@@ -224,13 +224,15 @@ function skip_test
 
 	print_test "skip test?"
 
-	if eval $*
+	eval $@
+
+	if [[ $? == 0 ]]
 	then
 		print_result SKIP
-		return
+		return 0
 	else
 		print_result no
-		return false
+		return 1
 	fi
 }
 
@@ -246,7 +248,7 @@ function run_test
 
 	. $1
 
-	[[ -n $SKIP_IF ]] && skip_test && return
+	[[ -n $SKIP_IF ]] && skip_test $SKIP_IF && return
 
 	[[ -n $SET_UP ]] && eval $SET_UP
 	[[ -n $PRE_CMD ]] && pre_cmd_test $PRE_CMD
