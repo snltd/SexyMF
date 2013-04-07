@@ -219,6 +219,21 @@ function post_cmd_test
 	handle_result "$*" $?
 }
 
+function skip_test 
+{
+
+	print_test "skip test?"
+
+	if eval $*
+	then
+		print_result SKIP
+		return
+	else
+		print_result no
+		return false
+	fi
+}
+
 function run_test
 {
 	# Run a test
@@ -231,20 +246,7 @@ function run_test
 
 	. $1
 
-	if [[ -n $SKIP_IF ]]
-	then
-		print_test "skip test?"
-
-		if $SKIP_IF
-		then
-			print_result SKIP
-			return
-		else
-			print_result no
-		fi
-
-
-	fi
+	[[ -n $SKIP_IF ]] && skip_test && return
 
 	[[ -n $SET_UP ]] && eval $SET_UP
 	[[ -n $PRE_CMD ]] && pre_cmd_test $PRE_CMD

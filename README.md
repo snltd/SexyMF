@@ -661,7 +661,9 @@ achieve it.
 
 SexyMF is developed and tested with Solaris 11 on x64 hardware, and with
 OmniOS under VirtualBox. It is also frequently tested with Solaris 10 and
-SmartOS VirtualBoxes, and with Solaris 10 on SPARC hardware.
+SmartOS VirtualBoxes. There is no SPARC support, as V8, and therefore
+Node.js, won't build on SPARC. (Which, IMO, is a great shame.)
+
 
 ## Operations Which are Not Supported
 
