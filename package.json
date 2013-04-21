@@ -1,6 +1,6 @@
 {
 	"name": "SexyMF",
-	"version": "0.8.0",
+	"version": "0.8.1",
 	"description": "Web API to Solaris/Illumos's SMF",
 	"os": "sunos",
 	"author": {
@@ -17,7 +17,7 @@
 	},
 	"devDependencies": {
 		"colors": "0.6.x",
-		"jshint": "0.9.x",
+		"jshint": "1.x.x",
 		"jsontool": "5.x.x"
 	},
 	"engines": {

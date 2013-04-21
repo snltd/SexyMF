@@ -24,7 +24,7 @@ var path = require('path'),
 
 process.chdir(__dirname);
 
-// Option parsing with optparse
+// Option parsing with optparse. Self-explanatory I think.
 
 var parser = new optparse.OptionParser([
 			['-c', '--config FILE', 'specify configuration file'],
@@ -40,9 +40,6 @@ parser.banner = 'Usage: ' + path.basename(__filename) + ' [options]';
 parser.on('daemon', function() {
 	require('daemon')();
 });
-
-// I don't really like using global, but it seems so much cleaner than
-// passing the filename to everything
 
 parser.on('config', function(name, value) {
 	options.config = value;
@@ -73,7 +70,7 @@ if (!options.port) {
 }
 
 // Now we're able to load in our own modules
-//
+
 var	smfPreflight = require('./lib/smfPreflight'),
 		smfApp = require('./lib/smfApp');
 
