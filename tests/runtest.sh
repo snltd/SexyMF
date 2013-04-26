@@ -27,8 +27,9 @@ HFILE=$(mktemp)
 TEST_FILE=$(mktemp)
 REF_FILE=$(mktemp)
 
-ZONE=$(zoneadm list | sed -n 2p)
-	# Use the first non-global zone for zone tests
+# Use the first non-global, non-branded zone for zone tests
+
+ZONE=$(zoneadm list -pc | grep -v solaris10 | sed 2!d | cut -d: -f2)
 
 ABORT_ON_ERROR=1
 	# uncomment this to have the script exit if a test fails

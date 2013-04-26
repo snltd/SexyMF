@@ -1,6 +1,5 @@
 # SexyMF
 
-
 A web API to SunOS's Service Management Facility, written in Node.js.
 
 ## Introduction
@@ -392,8 +391,8 @@ done in many ways, and is down to the sys-admin who installs the software.
 
 The simplest way to make everything work is to run as the root user. Do
 this, and you don't need to set up anything else. You can control access to
-everything via the SexyMF config files. I wouldn't do that myself though,
-and I wrote it.
+everything, in all zones, via the SexyMF config files. I wouldn't do that
+myself though, and I wrote it.
 
 The best way to correctly grant SexyMF the privileges it needs to do the job
 you want it to do is to read and understand the `smf_security(5)` manual
@@ -478,6 +477,20 @@ any external program which is not in this list. The allowed commands list is
 also respected in zones.
 
 
+### Managing Services in the Local Zone
+
+Again, by "local zone", I mean the zone in which the `sexymf.js` process is
+running. This may be global or an NGZ.
+
+To be able to manage all SMF services within the local zone, create a user
+as follows:
+
+    # useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
+      -P 'Service Management,Service Operator' smfuser
+
+Then run `sexymf.js` as that user. The SMF manifest `support/sexymf.xml`
+will do the job.
+
 ### Managing Services in Other Zones
 
 As mentioned above, you must specify a zone when you make a SexyMF API call.
@@ -486,6 +499,9 @@ zone, and SexyMF will attempt to perform the requested operation in that
 zone only. The mechanism by which it does this, and therefore the underlying
 OS configuration required for it to work, differs between SunOS
 implementations.
+
+SexyMF can only operate on NGZs directly. It currently has no proxying
+capabilities.
 
 #### Solaris
 
@@ -501,9 +517,19 @@ Coming soon.
 Solaris 11 introduced the zone `admin` property, which lets you assign NGZ
 management properties to a normal GZ user. This is done with `zonecfg(1m)`.
 
-    zonecfg:newzone> select admin user=sexymf
-    zonecfg:newzone:admin> set user=sexymf
-    zonecfg:newzone:admin> set auths=login,manage
+    # zonecfg -z myzone
+    zonecfg:myzone> add admin
+    zonecfg:myzone:admin> set user=smfuser
+    zonecfg:myzone:admin> set auths=manage
+
+Once this is done, you will need to tell SexyMF to "Simon Says" all its
+`zlogin` commands by setting `zlogin_pfexec` to `true` in the configuration
+file. Because any commmand run via `zlogin` is executed as root in the NGZ,
+no configuration is required in the zone - the `smfuser` user doesn't even
+need to exist. 
+
+Zone admin is a good way to allow SexyMF to manage NGZs, as rights can be
+assigned on a per-zone basis.
 
 #### Illumos Distributions
 
@@ -684,6 +710,8 @@ following are obvious current omissions.
  * anything to do with customizations
  * service descriptions
 
+Some of these are planned for the future, some of them aren't.
+
 # Versioning
 
 SexyMF uses [semantic
@@ -692,6 +720,19 @@ versioning](https://github.com/twitter/bootstrap#versioning).
 ## API versioning
 
 There is currently no API versioning in SexyMF.
+
+# Support
+
+The software is provided as-is. If you find bugs, please [report them as
+issues](https://github.com/snltd/SexyMF/issues) and I'll fix them ASAP. If
+you want more features, request an enhancement through the Github issues
+tracker, contact me directly, or feel free to fork the project.
+
+If you use SexyMF and find it useful or useless, I'd love to know. My
+email's in the `package.json` information.
+
+I work freelance. If you want to pay me to do this kind of thing, let's
+talk.
 
 # License
 

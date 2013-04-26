@@ -53,6 +53,7 @@
 	"external_bins": {
 		"/usr/sbin/zlogin": {},
 		"/bin/tail": {},
+		"/usr/bin/pfexec": {},
 		"/bin/ppriv": {},
 		"/bin/zonename": {},
 		"/bin/svcs": {},
@@ -85,6 +86,10 @@
 	// Solaris.
 
 	// "force_zlogin": true,
+
+	// Prefix all zlogin commands with pfexec.
+
+	"pfexec_zlogin": true,
 
 	// 'loglines' sets the default number of lines of service logs that are
 	// sent through the /log/ command.
