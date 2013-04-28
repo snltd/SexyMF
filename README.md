@@ -510,12 +510,21 @@ you have to run SexyMF as a user with privileges to do that.
 
 ##### Solaris 10
 
-Coming soon.
+I believe the best way to allow a non-root user access to NGZ's services is
+to assign the `Zone Management` profile. Be aware that this allows a user
+with access to that profile to run **any** command **as root** in **any**
+NGZ, without having to specify a password! Assuming this is acceptable to
+you, run the following command to create a user capable of managing any
+service in any zone. No configuration of the NGZs is required.
+
+    # useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
+	-P 'Zone Management,Service Management,Service Operator' smfuser
+
 
 ##### Solaris 11
 
 Solaris 11 introduced the zone `admin` property, which lets you assign NGZ
-management properties to a normal GZ user. This is done with `zonecfg(1m)`.
+management properties to a normal GZ user in a more granular way. This is done with `zonecfg(1m)`.
 
     # zonecfg -z myzone
     zonecfg:myzone> add admin
@@ -533,10 +542,10 @@ assigned on a per-zone basis.
 
 #### Illumos Distributions
 
-On Illumos, some commands (`svcs`, `svcadm`, `svcprop`) have been extended
-with a `-z` flag, allowing you to query or restart services in NGZs from the
-global zone. By default, SexyMF will use this option to operate on NGZs if
-it is available.
+Illumos has the zone `admin` property, but some commands (`svcs`, `svcadm`,
+`svcprop`) have also been extended with a `-z` flag, allowing you to query
+or restart services in NGZs from the global zone. By default, SexyMF will
+use this option to operate on NGZs if it is available.
 
 To be able to view the states, properties, and log files of services in an
 NGZ from the global using the '-z' flag, the SexyMF user requires the
@@ -577,6 +586,9 @@ If you need to run `svccfg` commands in NGZs, I suggest running SexyMF with
 `force_login` set to `true` in the configuration file, and setting up the OS
 as you would for Solaris.  This means the Illumos extensions will be
 ignored, and the `zlogin` method used for all NGZ operations.
+
+
+If you come up with a better way to do any of this, please let me know!
 
 ## Access Control
 
@@ -634,13 +646,47 @@ authorization will be written to the log.
 If you prefer not to use authentication at all, set `use_auths` to `false`
 in the config file, and seek professional help.
 
-## Whitelists and Blacklists
+## Access Lists (Or Whitelists and Blacklists)
 
 You can protect services and zones from being manipulated via the API using
-blacklists and/or whitelists. This should be seen as an _additional_ layer
-of security -- your services should be protected first and foremost by
-proper granting of RBAC privileges.
+access lists. These define a default policy for a zone (either "allow" or
+"deny", then a list of "excpetions" to the default policy. So, if you wished
+to only allow the `apache` service to be controlled by SexyMF, you would
+deny by default, and exclude apache.
 
+Access lists should be seen as an _additional_ layer of security -- your
+services should be protected first and foremost by proper granting of RBAC
+privileges.
+
+Define the path to the `access_list.json` file with the `access_file`
+property in the configuration file. If the file cannot be found, SexyMF will
+not start. If the path is `undefined`, access lists will not be checked, and
+SexyMF will assume you wish to grant API users access to all SMF services
+that the OS will allow.
+
+`access_list.json` is a JSON file containing objects which refer to zones.
+Normally the key of the object will be the name of the zone, but there is a
+special `default` object which is applied to all zones that do not have
+their own object.
+
+Each zone object is defined like this:
+
+    "default": {
+		"default_action": "allow",
+		"exceptions": [
+		]
+	}
+
+`default_action` can be the self-explanatory `allow` or `deny`, or `block`.
+If `block` is used, the exception list will not be honoured, and SexyMF will
+not perform any SMF operations in that zone. This makes blocking access to a
+zone very quick and easy.
+
+`exceptions` is an array of SMF service FMRIs.
+
+As with the main configuration and user file, Javascript style comments are
+allowed. They are stripped out by the
+[CJSON](https://github.com/kof/node-cjson) module.
 
 # Logging and Debugging
 
@@ -648,8 +694,9 @@ SexyMF uses the [Bunyan](https://github.com/trentm/node-bunyan) framework
 integrated in Restify. Bunyan writes structured logs in JSON format, which
 makes them very easy to parse programatically. If you want to simply cast an
 eye over the logs, there is a `bunyan` command-line tool at
-`node_modules/restify/node_modules/.bin/bunyan`. Please refer to the Bunyan
-documentation for information on how to use it.
+`node_modules/restify/node_modules/.bin/bunyan`. Please refer to [the Bunyan
+documentation](https://github.com/trentm/node-bunyan#cli-usage) for
+information on how to use it.
 
 SexyMF tries to record everything of any significance in its own field in
 the Bunyan logs. So, for instance, if you always wanted to know what UID the

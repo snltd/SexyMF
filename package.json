@@ -22,5 +22,19 @@
 	},
 	"engines": {
 		"node": ">=0.8.0"
+	},
+	"keywords": [
+		"solaris",
+		"illumos",
+		"smf",
+		"api"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/snltd/SexyMF.git"
+	},
+	"licenses": {
+		"type": "BSD",
+		"url": "http://opensource.org/licenses/BSD-2-Clause"
 	}
 }
