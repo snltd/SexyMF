@@ -1,0 +1,39 @@
+//----------------------------------------------------------------------------
+// USERS
+//
+// Users are defined as an object of the following form:
+//   "username: {
+//      "password": "password_as_clear_text_or_SHA_HASH",
+//      "auths" : [ "array", "of", "authorization", "levels" ]
+//  }
+//
+// See the top level README.md for more information on auths.
+
+{
+	"myuser": {
+		"password":
+			"sha1$498e6519$1$9ec4ded71edb6d1b8c2b634df1901d1b18b2b979",
+		"auths": [ "view", "manage" ]
+	},
+	"viewer": {
+		"password": "plainpass",
+		"auths": [ "view" ]
+	},
+	"logviewer": {
+		"password": "plainpass",
+		"auths": [ "view", "log"]
+	},
+	"archiver": {
+		"password": "plainpass",
+		"auths": [ "view", "log", "archive" ]
+	},
+	"manager": {
+		"password": "plainpass",
+		"auths": [ "view", "manage" ]
+	},
+	"tamperer": {
+		"password": "plainpass",
+		"auths": [ "view", "manage", "alter" ]
+	}
+
+}

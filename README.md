@@ -1,6 +1,11 @@
 # SexyMF
 
-A web API to SunOS's Service Management Facility, written in Node.js.
+SexyMF is a RESTful API to the Service Management Facility found in
+[Solaris](http://www.oracle.com/technetwork/articles/servers-storage-admin/adv-smf-admin-s11-1729196.html)
+and
+[Illumos](http://wiki.joyent.com/wiki/display/jpc2/Using+the+Service+Management+Facility).
+It is written in Node.js.
+
 
 ## Introduction
 
@@ -10,27 +15,30 @@ RESTful HTTP API.
 It runs as a Node.js process, listening (by default on port 9206) for HTTP
 requests, which it passes on to SMF via calls to the normal userland
 commands like `svcs(1)`, `svccfg(1M)` and `svcadm(1M)`. Responses are
-usually sent back to the client as JSON objects.
+usually sent back to the client as JSON objects. (The exceptions are
+detailed in this document.)
 
-Where possible, the URIs used to access the API try to mimic the SMF
-commands with which the user should already be familiar.
+As far as is possible, the URIs used to access the API try to mimic the
+SMF commands with which the user should already be familiar.
 
 If SexyMF is running in a host's global zone, and has sufficient operating
 system privileges, it is possible to operate on services in that host's
 non-global zones (NGZs).
 
 The SMF command-line tools are sophisticated, with many modes and options.
-No attempt is made to provide a comprehensive web interface to them. This
+No attempt is made to provide a comprehensive interface to them. This
 software is written with cloud deployments in mind, where it will be
-beneficial to be able to stop, restart and reconfigure running services on a
-large number of hosts or zones in a simple way, and the API reflects that.
+beneficial to be able to stop, restart and reconfigure running services
+on a large number of hosts or zones in a simple way, and the API
+reflects that.
 
-If you find the API does not expose a feature you wish that it did, either
-fork the project and do it yourself, or raise an issue and I'll see what I
-can do.
+If you find the API does not expose a feature you wish that it did,
+either fork the project and do it yourself, or raise an issue and I'll
+see what I can do.
 
-It is called what it's called because it's SMF (clearly), and in early 2013,
-what's sexier than a RESTful web API on anything? And because I like Prince.
+It is called what it's called because it's SMF (clearly), and in early
+2013, what's sexier than a RESTful web API on anything? And because I
+like Prince.
 
 
 ## Installation
@@ -61,7 +69,7 @@ There are a couple of potential snags: SexyMF is built on
 DTrace, which means compiling the Node DTrace module, which means GCC.
 Sorry. Second, you may find that the Restify build fails with a `make` usage
 error.  If that happens, it's using the Sun `make`, and it requires the GNU
-version, so fiddle with your path until that's fixed.
+version, so fiddle with your `PATH` until that's fixed.
 
 ## Invocation
 
@@ -646,46 +654,55 @@ authorization will be written to the log.
 If you prefer not to use authentication at all, set `use_auths` to `false`
 in the config file, and seek professional help.
 
-## Access Lists (Or Whitelists and Blacklists)
+## Service Access Lists
 
 You can protect services and zones from being manipulated via the API using
-access lists. These define a default policy for a zone (either "allow" or
-"deny", then a list of "excpetions" to the default policy. So, if you wished
-to only allow the `apache` service to be controlled by SexyMF, you would
-deny by default, and exclude apache.
+service access lists. These define a default policy for a zone (either
+"allow" or "deny", then a list of "exceptions" to the default policy.
+So, if you wished to only allow the `apache` service to be controlled by
+SexyMF, you would deny by default, and exclude apache.
 
-Access lists should be seen as an _additional_ layer of security -- your
-services should be protected first and foremost by proper granting of RBAC
-privileges.
+Service access lists should be seen as an _additional_ layer of security
+-- your services should be protected first and foremost by well thought
+out and correctly implemented RBAC privileges.
 
-Define the path to the `access_list.json` file with the `access_file`
-property in the configuration file. If the file cannot be found, SexyMF will
-not start. If the path is `undefined`, access lists will not be checked, and
-SexyMF will assume you wish to grant API users access to all SMF services
-that the OS will allow.
+### `access_list.json`
 
-`access_list.json` is a JSON file containing objects which refer to zones.
-Normally the key of the object will be the name of the zone, but there is a
-special `default` object which is applied to all zones that do not have
-their own object.
+`access_list.json` is a JSON file containing objects which refer to
+zones.  Normally the key of the object will be the name of the zone, but
+there is a special `default` object which is applied to all zones that
+do not have their own object.
 
 Each zone object is defined like this:
 
     "default": {
 		"default_action": "allow",
 		"exceptions": [
+			"svc:/system/console-login:default",
+			"svc:/system/filesystem/autofs:default"
 		]
 	}
 
-`default_action` can be the self-explanatory `allow` or `deny`, or `block`.
-If `block` is used, the exception list will not be honoured, and SexyMF will
-not perform any SMF operations in that zone. This makes blocking access to a
-zone very quick and easy.
+`default_action` can be the self-explanatory `allow` or `deny`, or
+`block`.  If `block` is used, the exception list will not be honoured,
+and SexyMF will not perform any SMF operations in that zone. This makes
+blocking access to a zone very quick and easy.
 
-`exceptions` is an array of SMF service FMRIs.
+`exceptions` is an array of fully-qualified SMF service FMRIs.  Using
+`console-login` or `filesystem/autofs` in the above example would not
+block the services from being run.
 
-As with the main configuration and user file, Javascript style comments are
-allowed. They are stripped out by the
+If the default action is `allow` or `deny`, you will still be able to
+view the state of services in the zone, and still be able to 
+
+Define the path to the `access_list.json` file with the `access_file`
+property in the configuration file. If the file cannot be found, SexyMF
+will not start. If the path is `undefined` or `false`, access lists will
+not be checked, and SexyMF will assume you wish to grant API users
+access to all SMF services that the OS will allow.
+
+As with the main configuration and user file, Javascript style comments
+are allowed. They are stripped out by the
 [CJSON](https://github.com/kof/node-cjson) module.
 
 # Logging and Debugging
@@ -724,13 +741,13 @@ documented](https://github.com/trentm/node-bunyan#dtrace-examples).
 
 # Compatibility
 
-SexyMF should be compatible with any SunOS system running SMF. This includes
-Sun Solaris 10, Oracle Solaris 11, and Illumos derivatives such as SmartOS
-and OmniOS. Some features dealing with non-global zones may be quicker to
-appear for Illumos OSes, as they have better capabilities to query services
-in zones, making some things easier to implement. Currently support is equal
-across all platforms, though different OS configuration is required to
-achieve it.
+SexyMF should be compatible with any `i86pc` SunOS system running SMF.
+This includes Sun Solaris 10, Oracle Solaris 11, and Illumos derivatives
+such as SmartOS and OmniOS. Some features dealing with non-global zones
+may be quicker to appear for Illumos OSes, as they have better
+capabilities to query services in zones, making some things easier to
+implement. Currently support is equal across all platforms, though
+different OS configuration is required to achieve it.
 
 SexyMF is developed and tested with Solaris 11 on x64 hardware, and with
 OmniOS under VirtualBox. It is also frequently tested with various Solaris
@@ -741,7 +758,6 @@ SexyMF assumes that the operating system has zone support. If you don't have
 the zone packages installed, the preflight checks will fail. I may remove
 this dependency in the future, but it seems unlikely anyone will be
 troubled by it.
-
 
 ## Operations Which are Not Supported
 
@@ -780,6 +796,13 @@ email's in the `package.json` information.
 
 I work freelance. If you want to pay me to do this kind of thing, let's
 talk.
+
+# Testing
+
+SexyMF is tested with a custom-written shell test harness in the
+`tests/` directory. I have tentative plans to redo this with a proper
+test framework.
+
 
 # License
 

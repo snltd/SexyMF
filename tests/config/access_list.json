@@ -1,0 +1,25 @@
+// This is a SexyMF access list file. It consists of zone objects, each of
+// which contains a default policy for the zone, and exceptions to that
+// policy.
+//
+// The "default" lists applies to all zones, but it is overridden by any
+// zone-specific list.
+
+{
+
+	"default" : {
+		"default_action": "allow",
+		"exceptions": [
+			"svc:/network/ssh:default"
+		]
+	},
+
+	"global": {
+		"default_action": "allow",
+		"exceptions": [
+			"inetd"
+		]
+	}
+
+}
+

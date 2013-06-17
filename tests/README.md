@@ -1,10 +1,11 @@
-Test harness for SexyMF. Not complicated, not sophisticated (though getting
-bigger and better/badder all the time), just makes sure the software does
-what it's supposed to. It's only really written for me, so I haven't gone
-out of my way to make it work in your environment. It probably will though.
+Test harness for SexyMF. Not complicated, not sophisticated (though
+getting bigger and better/badder all the time), just makes sure the
+software does what it's supposed to. It's only really written for me, so
+I haven't gone out of my way to make it work in your environment. It
+probably will though.
 
-Aside from checking the software works, it's useful for fine-tuning your OS
-permissions.
+Aside from checking the software works, it's useful for fine-tuning your
+OS permissions.
 
 Tests are little chunks of shell that define some variables used to build up
 a `curl` command and examine its output. The variables you can use are:
@@ -39,3 +40,5 @@ Some of the non-destructive tests query the SSH service, but most tests
 operate on a dummy `stest` service. The manifest is in the `manifest`
 directory, and it has to be in your repository.
 
+I might rewrite and improve these tests with something like Cucumber at
+some point soon.

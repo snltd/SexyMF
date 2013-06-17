@@ -1,0 +1,121 @@
+// This is the SexyMF configuration file. It is commented JSON.
+
+{
+	//------------------------------------------------------------------------
+	// CONNECTION SETTINGS
+	//
+	// SSL settings:
+	//   'enabled' may be true or false
+	//   'certificate' and 'key' must be paths to a cert and key, either
+	//   absolute or relative to the SexyMF root directory
+
+	"ssl": {
+		"enabled": true,
+		"certificate": "config/ssl/server.crt",
+		"key": "config/ssl/server.key"
+	},
+
+	// 'listen_port' is the port the server listens on -- override with -p
+
+	"listen_port": 9206,
+
+	// 'allowed_addr' is an array of IP addresses from which SexyMF will
+	// accept requests. Comment this out to accept requests from everywhere.
+	// Subnets and ranges are not yet supported.
+
+	// "allowed_addr": [ "127.0.0.1" ],
+
+	// 'use_auths' decides whether or not user authentication is used. If
+	// set to true, clients must connect with a username and password.
+
+	"use_auths": true,
+
+	// The path to the users file, if you are using one. Fully qualified, or
+	// relative to the sexymf.js executable.
+
+	"user_file": "config/users.json",
+
+	// 'show_status' tells the server whether or not to expose status
+	// information
+
+	"show_status": true,
+
+	// 'access_file' is the path to the whitelist/blacklist file. Set it to
+	// false to not use access lists
+
+	"access_file": "config/access_list.json",
+
+	//------------------------------------------------------------------------
+	// COMMAND EXECUTION
+	//
+	// "external_bins" is a list of external commands you want SexyMF to be
+	// able to exectute. So, if you don't want anyone to be able to call a
+	// particular command through the API, take it out of here. Some objects
+	// contain an array of flags. Only those flags can be used. Some
+	// commands have subcommands, which are another command-like object
+	// nested inside the higher-level one.
+
+	"external_bins": {
+		"/usr/sbin/zlogin": {},
+		"/bin/tail": {},
+		"/usr/bin/pfexec": {},
+		"/bin/ppriv": {},
+		"/bin/zonename": {},
+		"/bin/svcs": {},
+		"/bin/svcprop": {},
+		"/usr/sbin/svcadm": {
+			"restart": {},
+			"refresh": {},
+			"enable": {
+				"flags": [ "-t" ]
+			},
+			"disable": {
+				"flags": [ "-t" ]
+			},
+			"clear": {},
+			"mark": {
+				"flags": [ "-t" ]
+			}
+		},
+		"/usr/sbin/svccfg": {
+			"archive": {},
+			"export": {},
+			"extract": {
+				"flags": [ "-a" ]
+			}
+		}
+	},
+
+	// if 'force_zlogin' is true, SexyMF will use zlogin to run NGZ commands
+	// on Illumos, rather than using the -z flag. It has no effect on
+	// Solaris.
+
+	// "force_zlogin": true,
+
+	// Prefix all zlogin commands with pfexec.
+
+	"pfexec_zlogin": true,
+
+	// 'loglines' sets the default number of lines of service logs that are
+	// sent through the /log/ command.
+
+	"loglines": 100,
+
+	//------------------------------------------------------------------------
+	// LOGGING AND OUTPUT
+
+	// The audit_log turns on a Restify's audit logging plugin. It will
+	// record lots of information about requests which did not end in a 200
+	// code.  Specify a path to the file to which you wish the log to be
+	// written, or omit the audit_log entry if you don't want to use it.
+
+	"log": {
+		"logfile": "/var/tmp/sexymf.log",
+		"audit_log": "/var/tmp/sexymf.audit_log"
+	},
+
+	// The level to log at. debug, info etc. See the Bunyan docs for the
+	// full list.
+
+	"log_level": "debug"
+}

@@ -308,21 +308,36 @@ then
 	exit 1
 fi
 
-# Load in the stest service
+while getopts "n" option 2>/dev/null
+do
+	case $option in
 
-svcadm disable stest 2>/dev/null
-svccfg delete stest 2>/dev/null
+		"n")	NOIMPORT=1
+				;;
 
-print -n "importing test service: "
+	esac
+done
 
-svccfg import ${MYROOT}/manifest/stest.xml && print "ok" || print "failed"
+shift $(($OPTIND - 1))
 
-cp ${MYROOT}/manifest/stest.xml /zones/$ZONE/root
+if [[ -z $NOIMPORT ]]
+then
+	# Load in the stest service
 
-zlogin $ZONE svcadm disable stest 2>/dev/null
-zlogin $ZONE svccfg delete stest 2>/dev/null
-zlogin $ZONE svccfg import /stest.xml
-zlogin $ZONE svcadm disable stest
+	svcadm disable stest 2>/dev/null
+	svccfg delete stest 2>/dev/null
+
+	print -n "importing test service: "
+
+	svccfg import ${MYROOT}/manifest/stest.xml && print "ok" || print "failed"
+
+	cp ${MYROOT}/manifest/stest.xml /zones/$ZONE/root
+
+	zlogin $ZONE svcadm disable stest 2>/dev/null
+	zlogin $ZONE svccfg delete stest 2>/dev/null
+	zlogin $ZONE svccfg import /stest.xml
+	zlogin $ZONE svcadm disable stest
+fi
 
 # If we don't have a list, run all tests
 
