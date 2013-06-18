@@ -43,7 +43,7 @@
 	// 'access_file' is the path to the whitelist/blacklist file. Set it to
 	// false to not use access lists
 
-	"access_file": "config/access_list.json",
+	"access_file": "tests/config/access_list.json",
 
 	//------------------------------------------------------------------------
 	// COMMAND EXECUTION

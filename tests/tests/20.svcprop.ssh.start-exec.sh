@@ -1,4 +1,4 @@
-# Get the start/exec property for the SSH service
+# Get the start/exec property for the ssh service
 
 _svc=ssh
 _prop="start/exec"

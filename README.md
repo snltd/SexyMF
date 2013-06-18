@@ -196,6 +196,10 @@ Multiple services are an array of such objects.
 
 You cannot currently pass any flags through to the `svcs` command.
 
+If a zone is blocked via access lists (see below) you cannot query the
+state of any services running in it. However, if a zone is not blocked,
+you will always be able to view the state of all its services, even if
+access to those services is denied.
 
 ### Querying Service Properties
 
@@ -237,6 +241,9 @@ Asking for a non-existent property will result in an empty object. Querying
 a non-existent service is considered user error, so the API returns a 404.
 Variables other than `svc` and `prop` are ignored, and you cannot pass any
 flags through to the command.
+
+If a services is denied through a service ACL, you cannot query its
+properties.
 
 
 ### Getting Log Files
@@ -318,7 +325,8 @@ incorrectly formed command`.
 
 Sending an invalid service name or an invalid command will result in a 409
 error and a JSON object which attempts to identify the bad data. A missing
-command is a 404.
+command is a 404. Trying to manage a service which is blocked in a
+service ACL is forbidden, hence a 403 header is sent.
 
 If the SexyMF user doesn't have sufficient OS authorizations to run the
 command, the user will get back a 500 error, with the standard error from
@@ -704,6 +712,10 @@ access to all SMF services that the OS will allow.
 As with the main configuration and user file, Javascript style comments
 are allowed. They are stripped out by the
 [CJSON](https://github.com/kof/node-cjson) module.
+
+If you change access lists, you must restart the SexyMF daemon so the
+file is re-read.
+
 
 # Logging and Debugging
 

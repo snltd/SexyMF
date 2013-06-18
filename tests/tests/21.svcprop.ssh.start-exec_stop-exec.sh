@@ -1,4 +1,4 @@
-# Test two properties from the SSH service
+# Test two properties from the fmd service
 
 _svc=ssh
 _prop="start/exec,stop/exec"

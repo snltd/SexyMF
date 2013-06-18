@@ -10,14 +10,14 @@
 	"default" : {
 		"default_action": "allow",
 		"exceptions": [
-			"svc:/network/ssh:default"
+			"svc:/system/fmd:default"
 		]
 	},
 
 	"global": {
 		"default_action": "allow",
 		"exceptions": [
-			"inetd"
+			"svc:/system/fmd:default"
 		]
 	}
 
