@@ -9,14 +9,18 @@ It is written in Node.js.
 
 ## Introduction
 
-This software allows you to query and control SMF managed services through a
-RESTful HTTP API.
+This software allows you to query and control SMF managed services
+through a RESTful HTTP API.
 
-It runs as a Node.js process, listening (by default on port 9206) for HTTP
-requests, which it passes on to SMF via calls to the normal userland
-commands like `svcs(1)`, `svccfg(1M)` and `svcadm(1M)`. Responses are
-usually sent back to the client as JSON objects. (The exceptions are
-detailed in this document.)
+It runs as a Node.js process, listening (by default on port 9206) for
+HTTP requests, which it passes on to SMF via calls to the normal
+userland commands like
+[`svcs(1)`](http://www.unix.com/man-page/OpenSolaris/1/svcs/),
+[`svccfg(1M)`](http://www.unix.com/man-page/OpenSolaris/1/svccfg) and
+[`svcadm(1M)`](http://www.unix.com/man-page/OpenSolaris/1/svcadm).
+Responses are usually sent back to the client as JSON objects. When the
+SMF commands naturally return XML, that XML is returned to the client
+as-is.
 
 As far as is possible, the URIs used to access the API try to mimic the
 SMF commands with which the user should already be familiar.
@@ -38,15 +42,15 @@ see what I can do.
 
 It is called what it's called because it's SMF (clearly), and in early
 2013, what's sexier than a RESTful web API on anything? And because I
-like Prince.
+like [Prince](http://en.wikipedia.org/wiki/Sexy_MF).
 
 
 ## Installation
 
-You need a SunOS system with SMF. So, that's anything that says `5.10` or
-`5.11` when you run `uname -r`. You also need Node.js 0.8 or later, and the
-`node` binary needs to be in the `PATH` of the user you intend to run SexyMF
-as.
+You need a SunOS system with SMF. So, that's anything that says `SunOS
+5.10` or `SunOS 5.11` when you run `uname -sr`. You also need Node.js
+0.8 or later, and the `node` binary needs to be in the `PATH` of the
+user as which you intend to run SexyMF.
 
 If you are running Solaris 11 or an Illumos derivative such as SmartOS,
 OmniOS or OpenIndiana, you can get node from [the official Node download
@@ -96,7 +100,8 @@ To start the server, run `sexymf.js`. The following options are supported:
 The root URI of the API is `/smf`, followed by the name of the zone you wish
 to query, followed by the command you wish to access. Service names,
 properties, flags and other values are passed as query string or form
-variables, depending on the HTTP verb being used. In Connect terms:
+variables, depending on the HTTP verb being used. In
+[Connect](http://www.senchalabs.org/connect/) terms:
 
     /smf/:zone/:command?variables
 
@@ -123,7 +128,7 @@ same resource, which is undesirable.  As such, we do not use the `PUT` or
 service. All state modification is done by `POST`. You are, after all,
 always updating a database. (The SMF repository.) If this offends your
 refined academic understanding of RESTfulness, go cry about it on
-HackerNews, or do a better job yourself.
+HackerNews, or fork the project and do it your way.
 
 The FMRI service name you give to the API goes straight through to the
 external commands. Input is sanity checked to screen out code injection and
@@ -199,7 +204,7 @@ You cannot currently pass any flags through to the `svcs` command.
 If a zone is blocked via access lists (see below) you cannot query the
 state of any services running in it. However, if a zone is not blocked,
 you will always be able to view the state of all its services, even if
-access to those services is denied.
+access to some or all of those services is denied.
 
 ### Querying Service Properties
 
@@ -268,6 +273,21 @@ in a JSON object.
 
 To view logs, a user must have the `logview` authorization. If this is not
 the case, requests will be refused with a 403 error.
+
+### Importing a Service Manifest
+
+You can upload raw XML service manifests to SexyMF, and it will import
+them into the SMF repository.
+
+    $ svccfg import manifest.xml
+	POST filedate=@manifest.xml /smf/@/svccfg/import HTTP/1.1
+
+If the file you upload is not a valid manifest, or it fails to import
+for some other reason, you will get 409 error and the message `manifest
+did not import`. Successfully importing a manifest returns `Command
+complete`, and a 200 code.
+
+SexyMF does no checks to see if it is overwriting an existing manifest.
 
 
 ### Exporting a Service Manifest, Profile, or Archive
@@ -345,12 +365,21 @@ know what to do, and return a 500 error.
 Kick is a simple layer on top to the normal `svcadm` method. It therefore
 requires the `manager` authorization and suitable OS privileges.
 
+#### Deleting a Service
+
+If a user has the `delete` authorization he can delete a service. Note
+that this does not use the `DELETE` HTTP verb, for reasons discussed
+earlier in this document.
+
+    # svcccg delete myservice
+	POST svc=myservice /smf/@/svccfg/delete HTTP/1.1
+
 ### Adding, Changing, or Deleting Service Properties
 
 Service properties are changed with the `svcccg(1m)` command. This requires
 elevated privileges (see below), and as changes system state, we do it as a
 `POST` operation. As with `svcadm`, the sub-command is the final argument.
-To change or delete properties, a user requires the `alter` authorization.
+To change or Delete properties, a user requires the `alter` authorization.
 
 To add or change a property, do something like:
 
@@ -653,6 +682,8 @@ Authorizations are:
    `svcadm`
  * `alter` - required to set or delete service properties (alter the
    service)
+ * `delete` - required to delete a service via `svccfg delete`
+ * `import` - lets a user import an XML manifest for a service.
 
 If a user tries to perform an action for which he does not have the correct
 authorization, he will be sent a 405 code, with some JSON explaining that he
@@ -777,8 +808,6 @@ SMF is a very broad and sophisticated system, with a rich and complex
 interface. SexyMF makes no attempt to provide an API to everything. The
 following are obvious current omissions.
 
- * importing service manifests
- * deleting a service
  * applying a service profile
  * anything to do with notifications
  * anything to do with snapshots
@@ -811,10 +840,12 @@ talk.
 
 # Testing
 
-SexyMF is tested with a custom-written shell test harness in the
-`tests/` directory. I have tentative plans to redo this with a proper
-test framework.
+SexyMF is BDD tested using [Mocha](http://visionmedia.github.io/mocha/).
+It used to use a custom harness written in shell, which got pretty
+horrific pretty quickly. It's in the history if you want to see how not
+to write tests.
 
+There's more info in `test/README.md`.
 
 # License
 

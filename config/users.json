@@ -29,7 +29,7 @@
 	},
 	"manager": {
 		"password": "plainpass",
-		"auths": [ "view", "manage" ]
+		"auths": [ "view", "manage", "delete", "import" ]
 	},
 	"tamperer": {
 		"password": "plainpass",

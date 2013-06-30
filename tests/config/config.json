@@ -82,7 +82,11 @@
 			"export": {},
 			"extract": {
 				"flags": [ "-a" ]
-			}
+			},
+			"delete": {
+				"flags": ["-f"]
+			},
+			"import": {}
 		}
 	},
 
