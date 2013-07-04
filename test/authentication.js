@@ -1,3 +1,5 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+
 var should = require('should'),
 		request = require('supertest'),
 		conf = require('./config.js')();
