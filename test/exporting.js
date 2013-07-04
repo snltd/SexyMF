@@ -43,33 +43,18 @@ describe('Run SMF extract command', function() {
 
 
 describe('Run SMF archive command', function() {
-	this.timeout(10000);
 	//
 	// This isn't supported on Solaris 11.
 	//
 	child = exec('/usr/sbin/svccfg help 2>&1 | grep archive',
 			function(err, stdout, stderr) {
 
-		if (err.code === 0) {
-
-			describe('System has "svccfg archive"', function() {
-				it('should return an XML stream', function(done) {
-
-					request(conf.url)
-						.get('/smf/@/svccfg/archive')
-						.auth('archiver', 'plainpass')
-						.expect('Content-Type', 'application/xml')
-						.expect(200, done)
-
-				});
-
-			});
-			
-		}
-		else {
+		if (err) {
 
 			describe('System does not have "svccfg archive"', function() {
+
 				it('should return an error', function(done) {
+					this.timeout(10000);
 
 					request(conf.url)
 						.get('/smf/@/svccfg/archive')
@@ -79,6 +64,24 @@ describe('Run SMF archive command', function() {
 										"Unknown or incorrectly formed command: archive"
 						})
 						.expect(404, done)
+				});
+
+			});
+			
+		}
+		else {
+
+			describe('System has "svccfg archive"', function() {
+
+				it('should return an XML stream', function(done) {
+					this.timeout(10000);
+
+					request(conf.url)
+						.get('/smf/@/svccfg/archive')
+						.auth('archiver', 'plainpass')
+						.expect('Content-Type', 'application/xml')
+						.expect(200, done)
+
 				});
 
 			});

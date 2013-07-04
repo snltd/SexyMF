@@ -10,7 +10,7 @@ describe('wrong password', function() {
 			.get('/smf/@/svcs')
 			.auth('manager', 'wrongpass')
 			.expect('Content-Type', 'application/json')
-			.expect({"code": "NotAuthorized", "message": "Invalid credentials"})
+			.expect({	code: "NotAuthorized", message: "Invalid credentials"})
 			.expect(403, done)
 		});
 
