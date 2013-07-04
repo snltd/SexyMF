@@ -1,0 +1,4 @@
+-C
+--require should
+--reporter nyan
+--ui bdd

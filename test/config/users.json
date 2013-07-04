@@ -33,7 +33,7 @@
 	},
 	"tamperer": {
 		"password": "plainpass",
-		"auths": [ "view", "manage", "alter" ]
+		"auths": [ "view", "manage", "alter", "import", "delete" ]
 	}
 
 }

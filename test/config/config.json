@@ -33,7 +33,7 @@
 	// The path to the users file, if you are using one. Fully qualified, or
 	// relative to the sexymf.js executable.
 
-	"user_file": "config/users.json",
+	"user_file": "test/config/users.json",
 
 	// 'show_status' tells the server whether or not to expose status
 	// information
@@ -43,7 +43,7 @@
 	// 'access_file' is the path to the whitelist/blacklist file. Set it to
 	// false to not use access lists
 
-	"access_file": "tests/config/access_list.json",
+	"access_file": "test/config/access_list.json",
 
 	//------------------------------------------------------------------------
 	// COMMAND EXECUTION
@@ -80,6 +80,8 @@
 		"/usr/sbin/svccfg": {
 			"archive": {},
 			"export": {},
+			"setprop": {},
+			"delprop": {},
 			"extract": {
 				"flags": [ "-a" ]
 			},

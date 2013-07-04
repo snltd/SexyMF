@@ -21,7 +21,8 @@
 		"jsontool": "5.x.x",
 		"should": "1.2.x",
 		"supertest": "0.7.x",
-		"mocha": "1.11.x"
+		"mocha": "1.11.x",
+		"moment": "2.x.x"
 	},
 	"engines": {
 		"node": ">=0.8.0"

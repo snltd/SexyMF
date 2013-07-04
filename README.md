@@ -312,14 +312,13 @@ requires the `archive` authorization.
 	$ svccfg archive
     GET /smf/@/svccfg/archive HTTP/1.1
 
-The information is sent to the client as a chunked stream of XML, encoding
-type `application/xml`. Although most SexyMF output is JSON, manifests,
-profiles and archives have to be in XML, so it seems sensible to transfer
-them that way.
+The information from all these commands is sent to the client as a
+chunked stream of XML, encoding type `application/xml`. Although most
+SexyMF output is JSON, manifests, profiles and archives have to be in
+XML, so it seems sensible to transfer them that way.
 
-Importing manifests is not currently supported, but is planned for a future
-release. You cannot pass additional flags to `svccfg`.
-
+Attempting to run `archive` on a host which does not support the command
+(for instance Solaris 11) results in a 404 error.
 
 ### Managing Services
 
@@ -396,7 +395,11 @@ To delete a property
 	POST svc=apache&prop=start/project /smf/@/svccfg/delprop HTTP/1.1
 
 If the operation succeeds the user receives a 200 header and a JSON object
-containing the string `Command complete`.
+of the form
+
+    {
+		"msg": "command complete"
+	}
 
 Once a property is changed or added, you need to issue a `svcadm refresh`
 command to put the new value in the service's environment. Again, this is in
@@ -771,7 +774,7 @@ Restify provides an audit logging plugin, the output of which can be useful
 when debugging SexyMF. This audit log contains detailed information about
 any request which did not end with the client being sent a 200 code.
 
-If you wish to enable it, set `log[audit_log]` to a writable path in the
+If you wish to enable it, set `log["audit_log"]` to a writable path in the
 config file.
 
 ## DTrace
