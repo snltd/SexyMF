@@ -8,11 +8,16 @@ to the SexyMF daemon they are testing. By default, however, the tests
 assume a daemon on the local host, listening on HTTPS. To change these
 settings, look at `config.js`.
 
-To run the tests, ensure a SexyMF daemon is listening, and run 
+To run the tests, ensure a SexyMF daemon is listening, and using the
+configuration in the `test/config` directory:
+
+   $ ./sexymf.js -c test/config/config.json
+
+and run 
 
     $ mocha
 
-From the top-level `SexyMF` directory.
+from the top-level `SexyMF` directory. Watch nyan cat!
 
 At the moment there are no tests for operations run in NGZs by a SexyMF
 daemon. These existed in the old test harness, so that mode has been

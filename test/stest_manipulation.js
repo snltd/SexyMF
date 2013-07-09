@@ -42,9 +42,8 @@ describe('stest service manipulation', function() {
 
 	describe('Import the test manifest', function(done) {
 
-		console.log(conf.manifest);
-
 		it('should return 200', function(done) {
+			this.timeout(10000);
 			request(conf.url)
 				.post('/smf/@/svccfg/import')
 				.attach('manifest', conf.test_manifest)

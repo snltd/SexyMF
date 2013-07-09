@@ -21,7 +21,7 @@
 
 		<property_group name='options' type='application'>
 			<propval name='base' type='astring' value='/opt/SexyMF'/>
-			<propval name='nodebin' type='astring' value='/usr/local/node/bin/node'/>
+			<propval name='nodebin' type='astring' value='/opt/local/bin/node'/>
 		</property_group>
 
 		<instance name='default' enabled='true'>
