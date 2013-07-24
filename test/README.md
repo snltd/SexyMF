@@ -11,7 +11,7 @@ settings, look at `config.js`.
 To run the tests, ensure a SexyMF daemon is listening, and using the
 configuration in the `test/config` directory:
 
-   $ ./sexymf.js -c test/config/config.json
+    $ ./sexymf.js -c test/config/config.json
 
 and run 
 
