@@ -11,14 +11,15 @@ var should = require('should'),
 		request = require('supertest'),
 		common = require('./common.js'),
 		_ = require('underscore'),
-		conf = require('./config.js')();
+		conf = require('./config.js')(),
+		baseurl = '/smf/' + conf.zone + '/';
 
 describe('list svcs', function() {
 
 	it('should return an object listing all services', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcs')
+			.get(baseurl + 'svcs')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect(200)
@@ -41,7 +42,7 @@ describe('list online svcs', function() {
 		 function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcs?state=online')
+			.get(baseurl + 'svcs?state=online')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect(200)
@@ -67,7 +68,7 @@ describe('list unknown service', function() {
 	it('should return an error', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcs?svc=nosuchservice')
+			.get(baseurl + 'svcs?svc=nosuchservice')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({	"code": "ResourceNotFound",
@@ -84,7 +85,7 @@ describe('list disabled svcs', function() {
 	it('should return an object listing only disabled services', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcs?state=disabled')
+			.get(baseurl + 'svcs?state=disabled')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect(200)
@@ -110,7 +111,7 @@ describe('list unknown service state', function() {
 	it('should return an empty object', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcs?state=nosuch')
+			.get(baseurl + 'svcs?state=nosuch')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({})
@@ -129,7 +130,7 @@ describe('get state of ambiguous service', function() {
 		// This test probably ought to be tweaked
 
 		request(conf.url)
-			.get('/smf/@/svcs?svc=console-login')
+			.get(baseurl + 'svcs?svc=console-login')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect(200)
@@ -156,7 +157,7 @@ describe('invalid service name', function() {
 	it('should return an error', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcs?svc=no;\$(such)')
+			.get(baseurl + 'svcs?svc=no;\$(such)')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({	"code": "InvalidArgument",
@@ -173,7 +174,7 @@ describe('invalid service state', function() {
 	it('should return an error', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcs?state=no;\$(such)')
+			.get(baseurl + 'svcs?state=no;\$(such)')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({	"code": "InvalidArgument",
@@ -201,7 +202,7 @@ common.in_global(function(global) {
 				 function(done) {
 
 				request(conf.url)
-					.get('/smf/' + conf.zone + '/svcs?state=online')
+					.get(baseurl + ' + conf.zone + '/svcs?state=online')
 					.auth('manager', 'plainpass')
 					.expect('Content-Type', 'application/json')
 					.expect(200)

@@ -6,14 +6,15 @@
 var should = require('should'),
 		request = require('supertest'),
 		common = require('./common.js'),
-		conf = require('./config.js')();
+		conf = require('./config.js')(),
+		baseurl = '/smf/' + conf.zone + '/';
 
 describe('Non-existent subcommand', function() {
 
 	it('should return an error message', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svccfg/nosuch')
+			.get(baseurl + 'svccfg/nosuch')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({ code: "ResourceNotFound",
@@ -31,7 +32,7 @@ describe('Try to export non-existent service', function() {
 	it('should return an error message', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svccfg/export?svc=nosuch')
+			.get(baseurl + 'svccfg/export?svc=nosuch')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({ code: "ResourceNotFound",
@@ -50,7 +51,7 @@ describe('Try to archive without sufficient credentials',
 	it('should return an error message', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svccfg/archive')
+			.get(baseurl + 'svccfg/archive')
 			.auth('viewer', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({ code: "NotAuthorized",
@@ -68,7 +69,7 @@ describe('Try to set a property without sufficient credentials',
 	it('should return an error message', function(done) {
 
 		request(conf.url)
-			.post('/smf/@/svccfg/setprop')
+			.post(baseurl + 'svccfg/setprop')
 			.send({	svc: "utmp",
 							prop: "tm_man_utmpd1M/title",
 							val: "altered"
@@ -89,7 +90,7 @@ describe('Try to set a property in a blacklisted service', function() {
 	it('should return an error message', function(done) {
 
 		request(conf.url)
-			.post('/smf/@/svccfg/setprop')
+			.post(baseurl + 'svccfg/setprop')
 			.send({	svc: "fmd",
 							prop: "tm_man_fmd1M/section",
 							val: "1M"

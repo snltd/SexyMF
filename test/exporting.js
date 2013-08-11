@@ -5,18 +5,18 @@ var exec = require('child_process').exec,
 		should = require('should'),
 		request = require('supertest'),
 		conf = require('./config.js')(),
-		child;
+		child,
+		baseurl = '/smf/' + conf.zone + '/';
 
 // Some of these can take a while on slow machines, so we muck about
 // with the test timeouts
-
 
 describe('Export SSH manifest', function() {
 
 	it('should return an XML stream', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svccfg/export?svc=ssh')
+			.get(baseurl + 'svccfg/export?svc=ssh')
 			.auth('viewer', 'plainpass')
 			.expect('Content-Type', 'application/xml')
 			.expect(200, done)
@@ -32,7 +32,7 @@ describe('Run SMF extract command', function() {
 	it('should return an XML stream', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svccfg/extract')
+			.get(baseurl + 'svccfg/extract')
 			.auth('viewer', 'plainpass')
 			.expect('Content-Type', 'application/xml')
 			.expect(200, done)
@@ -57,7 +57,7 @@ describe('Run SMF archive command', function() {
 					this.timeout(10000);
 
 					request(conf.url)
-						.get('/smf/@/svccfg/archive')
+						.get(baseurl + 'svccfg/archive')
 						.auth('archiver', 'plainpass')
 						.expect('Content-Type', 'application/json')
 						.expect({	"code": "ResourceNotFound", "message":
@@ -77,7 +77,7 @@ describe('Run SMF archive command', function() {
 					this.timeout(10000);
 
 					request(conf.url)
-						.get('/smf/@/svccfg/archive')
+						.get(baseurl + 'svccfg/archive')
 						.auth('archiver', 'plainpass')
 						.expect('Content-Type', 'application/xml')
 						.expect(200, done)

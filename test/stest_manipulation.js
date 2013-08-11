@@ -8,31 +8,19 @@ var exec = require('child_process').exec,
 		request = require('supertest'),
 		common = require('./common.js'),
 		conf = require('./config.js')(),
-		child;
+		child,
+		baseurl = '/smf/' + conf.zone + '/';
 
 describe('stest service manipulation', function() {
 
 	var test_svc = 'stest';
-
-	before(function(done) {
-
-		// Stop the stest service and delete it. Just discard stdout
-
-		child = exec('/usr/sbin/svcadm disable ' + conf.test_svc +
-									'; /usr/sbin/svccfg delete ' + conf.test_svc,
-				function(err, stdout, stderr) {
-			done();
-		});
-		
-	});
-
 
 	describe('No existing service', function(done) {
 
 		it('ensures the test service does not exist', function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(404, done)
 			});
@@ -45,7 +33,7 @@ describe('stest service manipulation', function() {
 		it('should return 200', function(done) {
 			this.timeout(10000);
 			request(conf.url)
-				.post('/smf/@/svccfg/import')
+				.post(baseurl + 'svccfg/import')
 				.attach('manifest', conf.test_manifest)
 				.auth('tamperer', 'plainpass')
 				.expect('Content-Type', 'application/json')
@@ -56,7 +44,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200, done)
 		});
@@ -71,7 +59,7 @@ describe('stest service manipulation', function() {
 		before(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -83,7 +71,7 @@ describe('stest service manipulation', function() {
 
 		it('disables the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/svcadm/disable')
+				.post(baseurl + 'svcadm/disable')
 				.send({ svc: test_svc })
 				.auth('manager', 'plainpass')
 				.expect('Content-Type', 'application/json')
@@ -94,7 +82,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -114,7 +102,7 @@ describe('stest service manipulation', function() {
 			// Disable the service so we can re-enable it
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -126,7 +114,7 @@ describe('stest service manipulation', function() {
 
 		it('enables the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/svcadm/enable')
+				.post(baseurl + 'svcadm/enable')
 				.send({ svc: test_svc })
 				.auth('manager', 'plainpass')
 				.expect('Content-Type', 'application/json')
@@ -137,7 +125,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -156,7 +144,7 @@ describe('stest service manipulation', function() {
 		before(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -168,7 +156,7 @@ describe('stest service manipulation', function() {
 
 		it('marks the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/svcadm/mark')
+				.post(baseurl + 'svcadm/mark')
 				.send({ svc: test_svc,
 								state: "maintenance"
 				})
@@ -181,7 +169,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -200,7 +188,7 @@ describe('stest service manipulation', function() {
 		before(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -212,7 +200,7 @@ describe('stest service manipulation', function() {
 
 		it('clears the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/svcadm/clear')
+				.post(baseurl + 'svcadm/clear')
 				.send({ svc: test_svc})
 				.auth('manager', 'plainpass')
 				.expect('Content-Type', 'application/json')
@@ -223,7 +211,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -244,7 +232,7 @@ describe('stest service manipulation', function() {
 
 			it('disables the service', function(done) {
 				request(conf.url)
-					.post('/smf/@/svcadm/disable')
+					.post(baseurl + 'svcadm/disable')
 					.send({ svc: test_svc })
 					.auth('manager', 'plainpass')
 					.expect('Content-Type', 'application/json')
@@ -254,7 +242,7 @@ describe('stest service manipulation', function() {
 
 			it('makes sure the service is down', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcs?svc=' + test_svc)
+					.get(baseurl + 'svcs?svc=' + test_svc)
 					.auth('manager', 'plainpass')
 					.expect(200)
 					.end(function(err, res) {
@@ -268,7 +256,7 @@ describe('stest service manipulation', function() {
 
 		it('kicks the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/kick')
+				.post(baseurl + 'kick')
 				.send({ svc: test_svc })
 				.auth('manager', 'plainpass')
 				.expect('Content-Type', 'application/json')
@@ -279,7 +267,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -297,7 +285,7 @@ describe('stest service manipulation', function() {
 
 			it('puts the service in maintenance', function(done) {
 				request(conf.url)
-					.post('/smf/@/svcadm/mark')
+					.post(baseurl + 'svcadm/mark')
 					.send({ svc: test_svc,
 									state: "maintenance"
 					})
@@ -309,7 +297,7 @@ describe('stest service manipulation', function() {
 
 			it('makes sure the service is in maintenance', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcs?svc=' + test_svc)
+					.get(baseurl + 'svcs?svc=' + test_svc)
 					.auth('manager', 'plainpass')
 					.expect(200)
 					.end(function(err, res) {
@@ -323,7 +311,7 @@ describe('stest service manipulation', function() {
 
 		it('kicks the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/kick')
+				.post(baseurl + 'kick')
 				.send({ svc: test_svc })
 				.auth('manager', 'plainpass')
 				.expect('Content-Type', 'application/json')
@@ -334,7 +322,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -352,7 +340,7 @@ describe('stest service manipulation', function() {
 
 			it('Puts the service online', function(done) {
 				request(conf.url)
-					.post('/smf/@/svcadm/enable')
+					.post(baseurl + 'svcadm/enable')
 					.send({svc: test_svc })
 					.auth('manager', 'plainpass')
 					.expect('Content-Type', 'application/json')
@@ -362,7 +350,7 @@ describe('stest service manipulation', function() {
 
 			it('Makes sure the service is online', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcs?svc=' + test_svc)
+					.get(baseurl + 'svcs?svc=' + test_svc)
 					.auth('manager', 'plainpass')
 					.expect(200)
 					.end(function(err, res) {
@@ -376,7 +364,7 @@ describe('stest service manipulation', function() {
 
 		it('Kicks the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/kick')
+				.post(baseurl + 'kick')
 				.send({ svc: test_svc })
 				.auth('manager', 'plainpass')
 				.expect('Content-Type', 'application/json')
@@ -387,7 +375,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -405,7 +393,7 @@ describe('stest service manipulation', function() {
 
 			it('Puts the service online', function(done) {
 				request(conf.url)
-					.post('/smf/@/svcadm/enable')
+					.post(baseurl + 'svcadm/enable')
 					.send({svc: test_svc })
 					.auth('manager', 'plainpass')
 					.expect('Content-Type', 'application/json')
@@ -415,7 +403,7 @@ describe('stest service manipulation', function() {
 
 			it('Makes sure the service is online', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcs?svc=' + test_svc)
+					.get(baseurl + 'svcs?svc=' + test_svc)
 					.auth('manager', 'plainpass')
 					.expect(200)
 					.end(function(err, res) {
@@ -429,7 +417,7 @@ describe('stest service manipulation', function() {
 
 		it('Restarts the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/svcadm/restart')
+				.post(baseurl + 'svcadm/restart')
 				.send({ svc: test_svc })
 				.auth('manager', 'plainpass')
 				.expect('Content-Type', 'application/json')
@@ -440,7 +428,7 @@ describe('stest service manipulation', function() {
 		after(function(done) {
 
 			request(conf.url)
-				.get('/smf/@/svcs?svc=' + test_svc)
+				.get(baseurl + 'svcs?svc=' + test_svc)
 				.auth('manager', 'plainpass')
 				.expect(200)
 				.end(function(err, res) {
@@ -460,7 +448,7 @@ describe('stest service manipulation', function() {
 
 			it('Gets the current property state', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcprop?svc=' + test_svc + '&prop=test_params/p01')
+					.get(baseurl + 'svcprop?svc=' + test_svc + '&prop=test_params/p01')
 					.auth('tamperer', 'plainpass')
 					.expect({	test_params: { p01: "one" } })
 					.expect(200, done)
@@ -468,7 +456,7 @@ describe('stest service manipulation', function() {
 
 			it('Sets a new value', function(done) {
 				request(conf.url)
-					.post('/smf/@/svccfg/setprop')
+					.post(baseurl + 'svccfg/setprop')
 					.send({	svc: test_svc,
 									prop: "test_params/p01",
 									val: "altered"
@@ -481,7 +469,7 @@ describe('stest service manipulation', function() {
 
 			it('Refreshes the service', function(done) {
 				request(conf.url)
-					.post('/smf/@/svcadm/refresh')
+					.post(baseurl + 'svcadm/refresh')
 					.send({	svc: test_svc })
 					.auth('tamperer', 'plainpass')
 					.expect('Content-Type', 'application/json')
@@ -491,7 +479,7 @@ describe('stest service manipulation', function() {
 
 			it('Ensures the value was changed', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcprop?svc=' + test_svc + '&prop=test_params/p01')
+					.get(baseurl + 'svcprop?svc=' + test_svc + '&prop=test_params/p01')
 					.auth('tamperer', 'plainpass')
 					.expect({	test_params: { p01: "altered" } })
 					.expect(200, done)
@@ -504,7 +492,7 @@ describe('stest service manipulation', function() {
 
 			it('Sets a new property', function(done) {
 				request(conf.url)
-					.post('/smf/@/svccfg/setprop')
+					.post(baseurl + 'svccfg/setprop')
 					.send({	svc: test_svc,
 									prop: "test_params/p04",
 									type: "astring",
@@ -518,7 +506,7 @@ describe('stest service manipulation', function() {
 
 			it('Refreshes the service', function(done) {
 				request(conf.url)
-					.post('/smf/@/svcadm/refresh')
+					.post(baseurl + 'svcadm/refresh')
 					.send({	svc: test_svc })
 					.auth('tamperer', 'plainpass')
 					.expect('Content-Type', 'application/json')
@@ -528,7 +516,7 @@ describe('stest service manipulation', function() {
 
 			it('Ensures the property was set', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcprop?svc=' + test_svc + '&prop=test_params/p04')
+					.get(baseurl + 'svcprop?svc=' + test_svc + '&prop=test_params/p04')
 					.auth('tamperer', 'plainpass')
 					.expect({	test_params: {
 											p04: "four"
@@ -544,7 +532,7 @@ describe('stest service manipulation', function() {
 
 			it('Gets the current property state', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcprop?svc=' + test_svc + '&prop=test_params/p02')
+					.get(baseurl + 'svcprop?svc=' + test_svc + '&prop=test_params/p02')
 					.auth('tamperer', 'plainpass')
 					.expect({	test_params: { p02: "two" } })
 					.expect(200, done)
@@ -552,7 +540,7 @@ describe('stest service manipulation', function() {
 
 			it('Deletes the property', function(done) {
 				request(conf.url)
-					.post('/smf/@/svccfg/delprop')
+					.post(baseurl + 'svccfg/delprop')
 					.send({	svc: test_svc, prop: "test_params/p02" })
 					.auth('tamperer', 'plainpass')
 					.expect('Content-Type', 'application/json')
@@ -562,7 +550,7 @@ describe('stest service manipulation', function() {
 
 			it('Refreshes the service', function(done) {
 				request(conf.url)
-					.post('/smf/@/svcadm/refresh')
+					.post(baseurl + 'svcadm/refresh')
 					.send({	svc: test_svc })
 					.auth('tamperer', 'plainpass')
 					.expect('Content-Type', 'application/json')
@@ -572,7 +560,7 @@ describe('stest service manipulation', function() {
 
 			it('Ensures the property does not exist', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcprop?svc=' + test_svc + '&prop=test_params/p02')
+					.get(baseurl + 'svcprop?svc=' + test_svc + '&prop=test_params/p02')
 					.auth('tamperer', 'plainpass')
 					.expect({})
 					.expect(200, done)
@@ -587,7 +575,7 @@ describe('stest service manipulation', function() {
 
 			it('Disables the service', function(done) {
 				request(conf.url)
-					.post('/smf/@/svcadm/disable')
+					.post(baseurl + 'svcadm/disable')
 					.send({ svc: test_svc })
 					.auth('manager', 'plainpass')
 					.expect('Content-Type', 'application/json')
@@ -597,7 +585,7 @@ describe('stest service manipulation', function() {
 
 			it('Checks the service is down', function(done) {
 				request(conf.url)
-					.get('/smf/@/svcs?svc=' + test_svc)
+					.get(baseurl + 'svcs?svc=' + test_svc)
 					.auth('manager', 'plainpass')
 					.expect(200)
 					.end(function(err, res) {
@@ -612,7 +600,7 @@ describe('stest service manipulation', function() {
 
 		it('Deletes the service', function(done) {
 			request(conf.url)
-				.post('/smf/@/svccfg/delete')
+				.post(baseurl + 'svccfg/delete')
 				.send({ svc: test_svc })
 				.auth('tamperer', 'plainpass')
 				.expect('Content-Type', 'application/json')

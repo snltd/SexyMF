@@ -7,7 +7,8 @@ var should = require('should'),
 		request = require('supertest'),
 		common = require('./common.js'),
 		_ = require('underscore'),
-		conf = require('./config.js')();
+		conf = require('./config.js')(),
+		baseurl = '/smf/' + conf.zone + '/';
 
 describe('get start method', function() {
 
@@ -15,7 +16,7 @@ describe('get start method', function() {
 		 function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=ssh&prop=start/exec')
+			.get(baseurl + 'svcprop?svc=ssh&prop=start/exec')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({"start":{"exec":"/lib/svc/method/sshd\\ start"}})
@@ -31,7 +32,7 @@ describe('get start and stop method', function() {
 		 function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=ssh&prop=start/exec,stop/exec')
+			.get(baseurl + 'svcprop?svc=ssh&prop=start/exec,stop/exec')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({	"start":{"exec":"/lib/svc/method/sshd\\ start"},
@@ -51,7 +52,7 @@ describe('get start and stop method and ask for non-existent property',
 		 function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=ssh&prop=start/exec,stop/exec,start/nosuch')
+			.get(baseurl + 'svcprop?svc=ssh&prop=start/exec,stop/exec,start/nosuch')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({	"start":{"exec":"/lib/svc/method/sshd\\ start"},
@@ -70,7 +71,7 @@ describe('get all SSH properties', function() {
 		 function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=ssh')
+			.get(baseurl + 'svcprop?svc=ssh')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect(200)
@@ -90,7 +91,7 @@ describe('get start method ACL blocked', function() {
 	it('should return an error saying the method is blocked', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=fmd&prop=start/exec')
+			.get(baseurl + 'svcprop?svc=fmd&prop=start/exec')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({ "code": "NotAuthorized",
@@ -108,7 +109,7 @@ describe('request properties for amibiguous service', function() {
 		 function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=identity')
+			.get(baseurl + 'svcprop?svc=identity')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({	"code":"InvalidArgument",
@@ -125,7 +126,7 @@ describe('request property which does not exist', function() {
 	it('should return an empty object', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=ssh&prop=no_such_property')
+			.get(baseurl + 'svcprop?svc=ssh&prop=no_such_property')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({})
@@ -140,7 +141,7 @@ describe('request property of a service which does not exist', function() {
 	it('should return an empty object', function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=no_such_service&prop=exec/start')
+			.get(baseurl + 'svcprop?svc=no_such_service&prop=exec/start')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({	"code": "ResourceNotFound",
@@ -158,7 +159,7 @@ describe('request property with invalid name', function() {
 		 function(done) {
 
 		request(conf.url)
-			.get('/smf/@/svcprop?svc=ssh&prop=no;\$(such)')
+			.get(baseurl + 'svcprop?svc=ssh&prop=no;\$(such)')
 			.auth('manager', 'plainpass')
 			.expect('Content-Type', 'application/json')
 			.expect({	"code": "InvalidArgument",
