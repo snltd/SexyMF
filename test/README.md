@@ -1,3 +1,5 @@
+# SexyMF Tests
+
 This directory contains BDD tests for SexyMF. To run them you will
 require the `mocha`, `supertest`, and `should` Node modules. You also
 need a correctly configured system, which means SexyMF running as a user
@@ -27,4 +29,5 @@ the tests with `TARGET_ZONE`. For instance
 On a very slow or heavily loaded system, tests can fail supuriously.
 They might time out or, more commonly, SMF state changes take longer
 than the test suite expects, so you may see a service in `offline*`
-state rather than `offline`. 
+state rather than `offline`.  The test timeouts are pretty generous,
+because some of the VMs I use for testing are painfully slow.

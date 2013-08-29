@@ -93,7 +93,7 @@ if (!options.port) {
 // one. If we don't have one, fall back to 'info'.
 
 if (options.log_level) {
-	smfConfig.log_level = log_level;
+	smfConfig.log_level = options.log_level;
 }
 
 if (!smfConfig.log_level) {

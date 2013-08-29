@@ -74,7 +74,7 @@ describe('Run SMF archive command', function() {
 			describe('System has "svccfg archive"', function() {
 
 				it('should return an XML stream', function(done) {
-					this.timeout(10000);
+					this.timeout(20000);
 
 					request(conf.url)
 						.get(baseurl + 'svccfg/archive')

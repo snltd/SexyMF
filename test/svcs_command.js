@@ -15,6 +15,7 @@ var should = require('should'),
 		baseurl = '/smf/' + conf.zone + '/';
 
 describe('list svcs', function() {
+	this.timeout(10000);
 
 	it('should return an object listing all services', function(done) {
 
@@ -37,6 +38,7 @@ describe('list svcs', function() {
 
 
 describe('list online svcs', function() {
+	this.timeout(10000);
 
 	it('should return an object listing only online services',
 		 function(done) {
@@ -81,8 +83,10 @@ describe('list unknown service', function() {
 
 
 describe('list disabled svcs', function() {
+	this.timeout(10000);
 
-	it('should return an object listing only disabled services', function(done) {
+	it('should return an object listing only disabled services',
+		 function(done) {
 
 		request(conf.url)
 			.get(baseurl + 'svcs?state=disabled')
@@ -107,6 +111,7 @@ describe('list disabled svcs', function() {
 
 
 describe('list unknown service state', function() {
+	this.timeout(10000);
 
 	it('should return an empty object', function(done) {
 
