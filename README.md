@@ -589,7 +589,7 @@ Once this is done, you will need to tell SexyMF to "Simon Says" all its
 `zlogin` commands by setting `zlogin_pfexec` to `true` in the configuration
 file. Because any commmand run via `zlogin` is executed as root in the NGZ,
 no configuration is required in the zone - the `smfuser` user doesn't even
-need to exist. 
+need to exist.
 
 Zone admin is a good way to allow SexyMF to manage NGZs, as rights can be
 assigned on a per-zone basis.
@@ -741,7 +741,7 @@ blocking access to a zone very quick and easy.
 block the services from being run.
 
 If the default action is `allow` or `deny`, you will still be able to
-view the state of services in the zone, and still be able to 
+view the state of services in the zone, and still be able to
 
 Define the path to the `access_list.json` file with the `access_file`
 property in the configuration file. If the file cannot be found, SexyMF
@@ -766,6 +766,11 @@ eye over the logs, there is a `bunyan` command-line tool at
 `node_modules/restify/node_modules/.bin/bunyan`. Please refer to [the Bunyan
 documentation](https://github.com/trentm/node-bunyan#cli-usage) for
 information on how to use it.
+
+You can set the log level through the `log_level` variable in the
+config file. That value can be overriden with the `-l` or `--loglevel`
+switch when starting SexyMF. If neither value is supplied, the log
+level defaults to `info`.
 
 SexyMF tries to record everything of any significance in its own field in
 the Bunyan logs. So, for instance, if you always wanted to know what UID the

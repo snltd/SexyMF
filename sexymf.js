@@ -30,6 +30,7 @@ var parser = new optparse.OptionParser([
 			['-c', '--config FILE', 'specify configuration file'],
 			['-d', '--daemon', 'run as a daemon (suppressing stdout)'],
 			['-p', '--port PORT_NUMBER', 'listen on this port'],
+			['-l', '--loglevel LEVEL', 'set log level'],
 			['-V', '--version', 'print version and exit'],
 			['-h', '--help', 'print usage information and exit']
 		]),
@@ -47,6 +48,25 @@ parser.on('config', function(name, value) {
 
 parser.on('port', function(name, value) {
 	options.port = value;
+});
+
+parser.on('loglevel', function(name, value) {
+
+	// If the user has specified a log level, make sure it's one that
+	// Bunyan understands.
+
+	var log_levels = ['fatal', 'error', 'warn', 'info', 'debug', 'trace'];
+
+	if (log_levels.indexOf(value) !== -1) {
+		options.log_level = value;
+	}
+	else {
+		console.log('ERROR: invalid log level. (Try one of ' +
+				log_levels.join(', ') + ')');
+		process.exit(1);
+	}
+
+
 });
 
 parser.on('version', function() {
@@ -68,6 +88,18 @@ var smfConfig = require('./lib/smfConfig.js')(options.config);
 if (!options.port) {
 	options.port = smfConfig.listen_port;
 }
+
+// Override the log level in the config file, if the user specified
+// one. If we don't have one, fall back to 'info'.
+
+if (options.log_level) {
+	smfConfig.log_level = log_level;
+}
+
+if (!smfConfig.log_level) {
+	smfConfig.log_level = 'info';
+}
+
 
 // Now we're able to load in our own modules
 
