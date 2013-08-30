@@ -286,14 +286,26 @@ You can upload raw XML service manifests to SexyMF, and it will import
 them into the SMF repository.
 
     $ svccfg import manifest.xml
-	POST filedate=@manifest.xml /smf/@/svccfg/import HTTP/1.1
+    POST filedate=@manifest.xml /smf/@/svccfg/import HTTP/1.1
 
 If the file you upload is not a valid manifest, or it fails to import
 for some other reason, you will get 409 error and the message `manifest
 did not import`. Successfully importing a manifest returns `Command
 complete`, and a 200 code.
 
-SexyMF does no checks to see if it is overwriting an existing manifest.
+SexyMF does no checks to see if it is overwriting an existing manifest,
+and entirely trusts its input.
+
+I have found that on OmniOS at least, importing manifests into an NGZ
+from the global requires the use of `zlogin`. Directly manipulating the
+repository through `svccfg` does not do the import, and manually
+importing the manifest after gives an error of the form
+
+    svccfg: Scope "localhost" changed unexpectedly (service "application/stest" added).
+		svccfg: Could not refresh svc:/application/stest:default (deleted).
+
+So, if you wish to use this feature, please set `force_zlogin = true` in
+the configuration file.
 
 
 ### Exporting a Service Manifest, Profile, or Archive
