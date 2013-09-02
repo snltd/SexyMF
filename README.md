@@ -286,7 +286,7 @@ You can upload raw XML service manifests to SexyMF, and it will import
 them into the SMF repository.
 
     $ svccfg import manifest.xml
-    POST filedate=@manifest.xml /smf/@/svccfg/import HTTP/1.1
+    POST file=@manifest.xml /smf/@/svccfg/import HTTP/1.1
 
 If the file you upload is not a valid manifest, or it fails to import
 for some other reason, you will get 409 error and the message `manifest
