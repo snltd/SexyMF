@@ -296,16 +296,15 @@ complete`, and a 200 code.
 SexyMF does no checks to see if it is overwriting an existing manifest,
 and entirely trusts its input.
 
-I have found that on OmniOS at least, importing manifests into an NGZ
-from the global requires the use of `zlogin`. Directly manipulating the
-repository through `svccfg` does not do the import, and manually
-importing the manifest after gives an error of the form
+To import a manifest into an NGZ from the global zone, SexyMF copies the
+uploaded file into the zone root, and runs `zlogin svccfg import` to
+import it.  Directly manipulating the repository through `svccfg` does
+not do the import, and manually importing the manifest after gives an
+error of the form
 
     svccfg: Scope "localhost" changed unexpectedly (service "application/stest" added).
 		svccfg: Could not refresh svc:/application/stest:default (deleted).
 
-So, if you wish to use this feature, please set `force_zlogin = true` in
-the configuration file.
 
 
 ### Exporting a Service Manifest, Profile, or Archive
