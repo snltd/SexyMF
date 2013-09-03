@@ -424,7 +424,7 @@ line with standard SMF behaviour.
 
 A missing or unsupported command results in a 404 error.
 
-### Getting SexyMF status
+### Getting SexyMF Status
 
 If you have `show_status` set to `true` in the config file, a request of the
 form
@@ -433,6 +433,16 @@ form
 
 will return a JSON object containing information about SexyMF and its
 environment.
+
+#### Finding Out What `svccfg` Supports
+
+`svccfg(1m)` supports different commands and subcommands across
+different versions of SunOS. SexyMF will return a JSON-ified version of
+the output of `svccfg help` if `show_status` is `true` and you issue a
+request of the form
+
+    GET /smf/supports/svccfg HTTP/1.1
+
 
 
 # Configuration and Security
