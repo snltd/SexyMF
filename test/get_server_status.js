@@ -22,5 +22,19 @@ describe('Status', function() {
 
 		});
 
+	it('should return svccfg commands', function(done) {
+
+		request(conf.url)
+			.get('/smf/supports/svccfg')
+			.auth('manager', 'plainpass')
+			.expect('Content-Type', 'application/json')
+			.expect(200)
+			.end(function(err, res) {
+				res.body.should.have.property('General commands');
+				res.body['General commands'].should.include('repository');
+				done();
+			});
+
+		});
 
 });
