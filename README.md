@@ -65,8 +65,8 @@ running is to clone the Github repository and ask `npm` to install the
 required modules.
 
     $ git clone https://github.com/snltd/SexyMF.git
-	$ cd SexyMF
-	$ npm install --production
+    $ cd SexyMF
+    $ npm install --production
 
 If you want to run the test suite, use
 
@@ -227,11 +227,11 @@ client application to parse the properties.
 
     {
       property_group_1: {
-	 	property_1: value,
-	 	property_2: value
+        property_1: value,
+        property_2: value
       },
       property_group_2: {
-	     ...
+        ...
       }
     }
 
@@ -303,7 +303,7 @@ not do the import, and manually importing the manifest after gives an
 error of the form
 
     svccfg: Scope "localhost" changed unexpectedly (service "application/stest" added).
-		svccfg: Could not refresh svc:/application/stest:default (deleted).
+    svccfg: Could not refresh svc:/application/stest:default (deleted).
 
 
 
@@ -326,7 +326,7 @@ On systems which support the `archive` command, you can use it to take an
 XML archive of the running repository. This may be useful for backups.  It
 requires the `archive` authorization.
 
-	$ svccfg archive
+    $ svccfg archive
     GET /smf/@/svccfg/archive HTTP/1.1
 
 The information from all these commands is sent to the client as a
@@ -345,7 +345,7 @@ accessed through the `POST` verb. The command is the last part of the URI,
 but for consistency with the `svcs` commands, the service name is still
 passed in with the `svc` variable.
 
-	 # svcadm restart system-log
+    # svcadm restart system-log
      POST svc=system-log /smf/@/svcadm/restart HTTP/1.1
 
 You can pass flags such as `-t` and `-s` by setting `flags=` to a list of
@@ -376,7 +376,7 @@ restarted; if it is disabled, it is enabled; if it is in maintenance mode,
 it will be cleared. If the service is in any other state, SexyMF will not
 know what to do, and return a 500 error.
 
-	 POST svc=system-log /smf/@/kick HTTP/1.1
+    POST svc=system-log /smf/@/kick HTTP/1.1
 
 Kick is a simple layer on top to the normal `svcadm` method. It therefore
 requires the `manager` authorization and suitable OS privileges.
@@ -388,7 +388,7 @@ that this does not use the `DELETE` HTTP verb, for reasons discussed
 earlier in this document.
 
     # svcccg delete myservice
-	POST svc=myservice /smf/@/svccfg/delete HTTP/1.1
+    POST svc=myservice /smf/@/svccfg/delete HTTP/1.1
 
 ### Adding, Changing, or Deleting Service Properties
 
@@ -399,7 +399,7 @@ To change or Delete properties, a user requires the `alter` authorization.
 
 To add or change a property, do something like:
 
-	 # svccfg -s apache setprop start/project = astring: webproj
+    # svccfg -s apache setprop start/project = astring: webproj
      POST svc=apache&prop=start/project&type=astring&val=webproj /smf/@/svccfg/setprop HTTP/1.1
 
 If you are changing an existing property, the `type` variable is optional,
@@ -409,14 +409,14 @@ behaves -- all the API does is feed it parameters.
 To delete a property
 
     # svccfg -s apache delprop start/project
-	POST svc=apache&prop=start/project /smf/@/svccfg/delprop HTTP/1.1
+    POST svc=apache&prop=start/project /smf/@/svccfg/delprop HTTP/1.1
 
 If the operation succeeds the user receives a 200 header and a JSON object
 of the form
 
     {
-		"msg": "command complete"
-	}
+      "msg": "command complete"
+    }
 
 Once a property is changed or added, you need to issue a `svcadm refresh`
 command to put the new value in the service's environment. Again, this is in
@@ -481,7 +481,7 @@ an application server following a code release. If this is the case, grant
 the relevant `solaris.smf.manage.` authorization to the user which SexyMF
 runs as. That will be `smfuser`, in the following examples. For instance:
 
-	# usermod -A solaris.smf.manage.apache smfuser
+    # usermod -A solaris.smf.manage.apache smfuser
 
 You can find a list of the authorizations in
 `/etc/security/auth_attr.d/SUNWcs`, `/etc/security/auth_attr.d/core-os`, or
@@ -491,7 +491,7 @@ manage a service by querying the service's `action_authorization` property.
 For example:
 
     $ svcprop -p general/action_authorization ssh
-	solaris.smf.manage.ssh
+    solaris.smf.manage.ssh
 
 If you want the SexyMF user to be able to restart _any_ service, you can do
 
@@ -520,7 +520,7 @@ a service doesn't have an `action_authorization` or `value_authorization`,
 you can add it with a command of the form:
 
     # svccfg -s <fmri> setprop general/value_authorization = astring: \
-	'solaris.smf.manage.fmri
+    'solaris.smf.manage.fmri
 
 where `fmri` is the service FMRI.
 
@@ -542,7 +542,7 @@ sub-commands, and options. For example:
             },
             "clear" : {}
         },
-	}
+    }
 
 This means that SexyMF is free to execute `/bin/zonename`, but not
 `/usr/sbin/svccfg`. A user may run enable a service, but not restart one. He
@@ -593,7 +593,7 @@ you, run the following command to create a user capable of managing any
 service in any zone. No configuration of the NGZs is required.
 
     # useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
-	-P 'Zone Management,Service Management,Service Operator' smfuser
+    -P 'Zone Management,Service Management,Service Operator' smfuser
 
 
 ##### Solaris 11
@@ -634,16 +634,16 @@ To enable them:
 Or, to create a user capable of running all supported API operations in an
 NGZ, issue this command in the global zone:
 
-	# useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
-	  -P 'Service Management,Service Operator' \
-	  -K defaultpriv=basic,file_dac_read,file_dac_search smfuser
+    # useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
+      -P 'Service Management,Service Operator' \
+      -K defaultpriv=basic,file_dac_read,file_dac_search smfuser
 
 To manage services in an NGZ, the SexyMF user needs to exist in global and
 local zones, and have appropriate SMF privileges granted through `usermod`,
 in BOTH zones. To create such a user, log in to the local zone and run:
 
-	# useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
-	  -P 'Service Management,Service Operator' smfuser
+    # useradd -u 9206 -g 10 -d / -s /bin/ksh -c "SexyMF user" \
+      -P 'Service Management,Service Operator' smfuser
 
 If the NGZ user lacks privileges, `svcadm` will produce an error of the
 form:
@@ -745,12 +745,12 @@ do not have their own object.
 Each zone object is defined like this:
 
     "default": {
-		"default_action": "allow",
-		"exceptions": [
-			"svc:/system/console-login:default",
-			"svc:/system/filesystem/autofs:default"
-		]
-	}
+      "default_action": "allow",
+      "exceptions": [
+        "svc:/system/console-login:default",
+        "svc:/system/filesystem/autofs:default"
+      ]
+    }
 
 `default_action` can be the self-explanatory `allow` or `deny`, or
 `block`.  If `block` is used, the exception list will not be honoured,
