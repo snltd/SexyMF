@@ -3,69 +3,69 @@
 <!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
 
 <!--
-	SMF manifest to run SexyMF. Runs as 'sexymf' user. Assumes it is installed
-	in /opt/SexyMF, but this can be changed through the 'base' property. If
-	your node binary isn't in /usr/bin, set the 'nodebin' property to the
-	directory containing it.
+  SMF manifest to run SexyMF. Runs as 'sexymf' user. Assumes it is installed
+  in /opt/SexyMF, but this can be changed through the 'base' property. If
+  your node binary isn't in /usr/bin, set the 'nodebin' property to the
+  directory containing it.
 
-	start - start SexyMF daemon
-	stop - stop SexyMF daemon
+  start - start SexyMF daemon
+  stop - stop SexyMF daemon
 
-	R Fisher / SNLTD 04/2013
+  R Fisher / SNLTD 04/2013
 -->
 
 <service_bundle type='manifest' name='export'>
 
-	<service name='snltd/sexymf' type='service' version='0'>
-		<single_instance/>
+  <service name='snltd/sexymf' type='service' version='0'>
+    <single_instance/>
 
-		<property_group name='options' type='application'>
-			<propval name='base' type='astring' value='/opt/SexyMF'/>
-			<propval name='nodebin' type='astring' value='/opt/local/bin/node'/>
-		</property_group>
+    <property_group name='options' type='application'>
+      <propval name='base' type='astring' value='/opt/SexyMF'/>
+      <propval name='nodebin' type='astring' value='/opt/local/bin/node'/>
+    </property_group>
 
-		<instance name='default' enabled='true'>
+    <instance name='default' enabled='true'>
 
-			<dependency name='milestone'
-				grouping='require_all'
-				restart_on='error'
-				type='service'>
+      <dependency name='milestone'
+        grouping='require_all'
+        restart_on='error'
+        type='service'>
 
-				<service_fmri value='svc:/milestone/multi-user-server:default'/>
-			</dependency>
+        <service_fmri value='svc:/milestone/multi-user-server:default'/>
+      </dependency>
 
-			<exec_method name='start'
-				type='method'
-				exec='%{options/nodebin} %{options/base}/sexymf.js -d'
-				timeout_seconds='60'>
+      <exec_method name='start'
+        type='method'
+        exec='%{options/nodebin} %{options/base}/sexymf.js -d'
+        timeout_seconds='60'>
 
-				<method_context>
+        <method_context>
 
-					<method_credential
-						user='smfuser'
-						group='other'/>
-				</method_context>
+          <method_credential
+            user='smfuser'
+            group='other'/>
+        </method_context>
 
-			</exec_method>
+      </exec_method>
 
-			<exec_method name='stop'
-				type='method'
-				exec=':kill'
-				timeout_seconds='60'>
-				<method_context/>
-			</exec_method>
+      <exec_method name='stop'
+        type='method'
+        exec=':kill'
+        timeout_seconds='60'>
+        <method_context/>
+      </exec_method>
 
-		</instance>
+    </instance>
 
-		<stability value='Unstable'/>
+    <stability value='Unstable'/>
 
-		<template>
-			<common_name>
-				<loctext xml:lang='C'>SexyMF - SMF API daemon</loctext>
-			</common_name>
-		</template>
+    <template>
+      <common_name>
+        <loctext xml:lang='C'>SexyMF - SMF API daemon</loctext>
+      </common_name>
+    </template>
 
-	</service>
+  </service>
 
 </service_bundle>
 
