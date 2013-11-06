@@ -546,7 +546,8 @@ sub-commands, and options. For example:
 
 This means that SexyMF is free to execute `/bin/zonename`, but not
 `/usr/sbin/svccfg`. A user may run enable a service, but not restart one. He
-may pass the `-t` flag to `svcadm disable`, but not `-s`. This gives you a
+may pass the `-t` or `-s` flags to `svcadm disable`, whilst `svcadm enable`
+only accepts `-s`. This gives you a
 fine-grained control over permitted operations. SexyMF will not attempt to run
 any external program which is not in this list. The allowed commands list is
 also respected in zones.
