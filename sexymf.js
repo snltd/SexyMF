@@ -18,7 +18,8 @@
 // modules. Kind of in descending order of how much I trust them.
 
 var path = require('path'),
-    optparse = require('optparse');
+    optparse = require('optparse'),
+    smfCommon = require(__dirname + '/lib/smfCommon');
 
 // chdir to the directory this file is in, so the config paths work
 
@@ -113,7 +114,7 @@ smfPreflight.userCheck();
 
 // Call the app module, which sets up Restify and all the routing.
 
-smfApp.setupApp({name: "SexyMF"});
+smfApp.setupApp();
 
 // Cache a bit of info, and start the server listening
 

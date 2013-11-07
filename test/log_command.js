@@ -4,7 +4,7 @@
 var should = require('should'),
     request = require('supertest'),
     common = require('./common.js'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     conf = require('./config.js')(),
     baseurl = '/smf/' + conf.zone + '/';
 
@@ -88,7 +88,7 @@ describe('request log for unknown service', function() {
       .expect('Content-Type', 'application/json')
       .expect({ "code": "ResourceNotFound",
                 "message": "Unknown service: nosuchservice"
-      }) 
+      })
       .expect(404, done)
   });
 

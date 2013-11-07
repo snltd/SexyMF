@@ -142,6 +142,40 @@ plain nonsense, but it's your responsibility to use a correct, unambiguous
 FMRI just as if you were using the standard CLI tools. The same applies to
 service states, property names and datatypes.
 
+### Partial Response
+
+SexyMF has rudimentary support for partial response. Currently it allows
+you to select unique fields that will be passed back to you when issuing
+a `GET` request. This is done by specifying a comma-separated list of
+the desired fields in the `fields` variable.
+
+For instance, the default SexyMF `status` object has around forty
+properties. If you only wanted to know the number of API calls the
+server has handled, and the version of Node that is running it, you
+would ask:
+
+    GET /smf/status?fields=sexymf.api%20calls,node.node_versions.node" HTTP/1.1
+
+and SexyMF would send back
+
+```json
+{
+  "sexymf": {
+    "api calls": 19
+  },
+  "node": {
+    "node_versions": {
+      "node": "0.10.15"
+    }
+  }
+}
+
+```
+
+If you specify only non-existent fields, you will receive an empty
+object and a 200 code.
+
+Filtering on field values may be supported in the future.
 
 ### Querying Service State
 
@@ -443,6 +477,10 @@ request of the form
 
     GET /smf/supports/svccfg HTTP/1.1
 
+You can use partial responses to get, for instance, a list of the
+supported manifest commands to see whether `archive` will work.
+
+    GET /smf/supports/svccfg?fields=Manifest%20commands HTTP/1.1
 
 
 # Configuration and Security

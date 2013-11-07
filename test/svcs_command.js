@@ -1,4 +1,4 @@
-// 
+//
 // Check output from the svcs(1) command. The old test harness used to
 // count instances with the command-line tools and make sure SexyMF got
 // the same numbers back. Since the new test suite doesn't assume the
@@ -10,7 +10,7 @@ var should = require('should'),
     child,
     request = require('supertest'),
     common = require('./common.js'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     conf = require('./config.js')(),
     baseurl = '/smf/' + conf.zone + '/';
 
@@ -75,7 +75,7 @@ describe('list unknown service', function() {
       .expect('Content-Type', 'application/json')
       .expect({ "code": "ResourceNotFound",
                 "message": "Unknown service: nosuchservice"
-      }) 
+      })
       .expect(404, done)
   });
 
@@ -167,7 +167,7 @@ describe('invalid service name', function() {
       .expect('Content-Type', 'application/json')
       .expect({ "code": "InvalidArgument",
                 "message": "Invalid value for service: no;$(such)"
-      }) 
+      })
       .expect(409, done)
   });
 
@@ -184,7 +184,7 @@ describe('invalid service state', function() {
       .expect('Content-Type', 'application/json')
       .expect({ "code": "InvalidArgument",
                 "message": "Invalid value for state: no;$(such)"
-      }) 
+      })
       .expect(409, done)
   });
 
@@ -202,7 +202,7 @@ common.in_global(function(global) {
   if (global) {
 
     describe('list online svcs in zone', function() {
-    
+
       it('should return an object listing only online services',
          function(done) {
 

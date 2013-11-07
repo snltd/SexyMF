@@ -8,9 +8,9 @@
     "email": "slackboy@gmail.com"
   },
   "dependencies" : {
-    "restify": "2.x.x",
+    "restify": "2.6.x",
     "cjson": "0.2.x",
-    "underscore": "1.x.x",
+    "lodash": ">=2.2.1",
     "password-hash": "1.2.x",
     "optparse": "1.0.x",
     "daemon": "1.0.x"

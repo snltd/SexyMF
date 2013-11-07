@@ -1,4 +1,4 @@
-// 
+//
 // Run tests on how SexyMF uses the svcprop(1m) command in the local
 // zone. Looks at standard SunOS services which I expect to provide stable
 // interfaces.
@@ -6,7 +6,7 @@
 var should = require('should'),
     request = require('supertest'),
     common = require('./common.js'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     conf = require('./config.js')(),
     baseurl = '/smf/' + conf.zone + '/';
 
