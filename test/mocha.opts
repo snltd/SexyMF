@@ -1,3 +1,4 @@
+--no-colors
 --bail
 --require should
 --reporter nyan

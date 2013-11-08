@@ -898,7 +898,8 @@ versioning](https://github.com/twitter/bootstrap#versioning).
 
 ## API versioning
 
-There is currently no API versioning in SexyMF.
+SexyMF currently has only a single version of its API, `1.0.0`. This is
+reported in the `Api-Version` header.
 
 # Support
 
