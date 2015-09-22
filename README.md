@@ -52,13 +52,14 @@ You need a SunOS system with SMF. So, that's anything that says `SunOS
 0.8 or later, and the `node` binary needs to be in the `PATH` of the
 user as which you intend to run SexyMF.
 
-If you are running Solaris 11 or an Illumos derivative such as SmartOS,
+If you are running Solaris 11 or an Illumos derivative such as
 OmniOS or OpenIndiana, you can get node from [the official Node download
 page](http://nodejs.org/download/). If you are running Solaris 10, [Peter
 Tribble maintains an excellent
 port](http://www.petertribble.co.uk/Solaris/node.html) which installs every
 required file in a single SYSV package. 32- and 64-bit versions should both
-be fine.
+be fine. If you are running SmartOS, `pkgin in node`, if your VM doesn't
+alredy have it.
 
 Once you have a suitable Node installation, a quick way to get up and
 running is to clone the Github repository and ask `npm` to install the
@@ -592,12 +593,12 @@ sub-commands, and options. For example:
 ```
 
 This means that SexyMF is free to execute `/bin/zonename`, but not
-`/usr/sbin/svccfg`. A user may run enable a service, but not restart one. He
-may pass the `-t` or `-s` flags to `svcadm disable`, whilst `svcadm enable`
-only accepts `-s`. This gives you a
-fine-grained control over permitted operations. SexyMF will not attempt to run
-any external program which is not in this list. The allowed commands list is
-also respected in zones.
+`/usr/sbin/svccfg`. A user may run `/usr/sbin/svcadm` to enable a
+service, but not restart one. They may pass the `-t` or `-s` flags to
+`svcadm disable`, whilst `svcadm enable` only accepts `-s`. This gives
+you a fine-grained control over permitted operations. SexyMF will not
+attempt to run any external program which is not in this list. The
+allowed commands list is also respected in zones.
 
 
 ### Managing Services in the Local Zone
@@ -671,7 +672,7 @@ or restart services in NGZs from the global zone. By default, SexyMF will
 use this option to operate on NGZs if it is available.
 
 To be able to view the states, properties, and log files of services in an
-NGZ from the global using the '-z' flag, the SexyMF user requires the
+NGZ from the global using the `-z` flag, the SexyMF user requires the
 `file_dac_read` and `file_dac_search` privileges. Don't enable these unless
 you are fully aware of what they mean and accept any consequences. With
 these privileges, the SexyMF user will be able to read ANY file on the host!
