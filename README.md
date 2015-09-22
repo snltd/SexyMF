@@ -263,7 +263,7 @@ hierarchical JSON object. Property groups are top-level objects, with
 properties stored inside them as key/value pairs. This makes it easy for a
 client application to parse the properties.
 
-```json
+```
 {
   property_group_1: {
     property_1: value,
