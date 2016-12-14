@@ -930,7 +930,7 @@ talk.
 
 # Testing
 
-SexyMF is BDD tested using [Mocha](http://visionmedia.github.io/mocha/).
+SexyMF is BDD tested using [Mocha](http://mochajs.org/).
 It used to use a custom harness written in shell, which got pretty
 horrific pretty quickly. It's in the history if you want to see how not
 to write tests.
